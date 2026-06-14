@@ -1,0 +1,61 @@
+# Free API Hub — 飞书/Lark 机器人集成配置
+# 用于移动端编程交互，实现飞书/Lark 机器人集成
+
+# 飞书应用配置
+# 请在飞书开放平台（open.feishu.cn）创建应用，并获取以下凭证
+
+# 应用 ID
+app_id = "cli_your_app_id_here"
+
+# 应用密钥
+app_secret = "your_app_secret_here"
+
+# 事件验证令牌（可选）
+verification_token = "your_verification_token_here"
+
+# 机器人配置
+[robot]
+name = "Free API Hub 机器人"
+description = "用于移动端编程交互的智能机器人"
+enabled = true
+
+# 消息处理配置
+[message_handling]
+# 是否启用代码执行
+enable_code_execution = true
+# 代码执行超时时间（秒）
+code_execution_timeout = 30
+# 是否启用文件操作
+enable_file_operations = true
+
+# 集成配置
+[integration]
+# 与 Free API Hub 的集成
+free_api_hub_enabled = true
+# Free API Hub 端口
+free_api_hub_port = 5081
+
+# 安全配置
+[security]
+# 是否验证消息来源
+verify_message_source = true
+# 是否限制用户
+restrict_users = false
+# 允许的用户列表（留空表示不限制）
+allowed_users = []
+
+# 日志配置
+[logging]
+level = "INFO"
+file = "/var/log/feishu_bot.log"
+max_size = 10485760  # 10MB
+backup_count = 5
+
+# 监控配置
+[monitoring]
+# 是否启用监控
+enabled = true
+# 监控端口
+port = 5103
+# 健康检查路径
+health_check_path = "/health"
