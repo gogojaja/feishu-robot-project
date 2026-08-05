@@ -1,0 +1,5 @@
+﻿项目,内容
+术语表,opencode=本机AI编程CLI；tenant_access_token=飞书租户访问令牌；open_id=飞书用户唯一标识；session_id=opencode会话标识
+参考资料,AGENTS.md（沟通准则）；README.md；src/feishu_integration.py；config/feishu.yaml
+数据流,飞书用户→飞书开放平台→/feishu/events→_process→opencode run→响应→send→飞书用户
+业务流程,事件回调→url验证→消息去重→文本解析→会话获取→opencode调用→输出清理→发送回复

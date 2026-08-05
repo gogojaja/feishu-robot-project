@@ -1,0 +1,6 @@
+﻿需求编号,数据实体,属性,来源,流向,存储,生命周期,质量要求
+REQ-004,sessions,open_id→session_id,运行期,内存,内存字典,随进程消亡,一致性
+REQ-003,processed_ids,message_id集合,运行期,内存,内存set,去重后保留,幂等
+REQ-022,消息内容,消息文本,飞书入站,内存处理,不落盘,即时销毁,隐私
+REQ-008,token,tenant_access_token/expire,飞书API,内存,内存变量,7200s过期刷新,有效性
+REQ-006,session_id,API调用方session,运行期,内存,内存映射,随进程消亡,一致性

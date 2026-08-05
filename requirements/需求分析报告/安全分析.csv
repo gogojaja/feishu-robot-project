@@ -1,0 +1,6 @@
+﻿需求编号,威胁类型,风险描述,影响,控制措施,优先级
+REQ-018,信息泄露,app_secret/token写入日志或仓库,凭证泄露,不打印凭证；token内存态,Must
+REQ-014,权限提升,操作/Users/gogo路径或使用sudo,越权,禁止路径与sudo校验,Must
+REQ-020,拒绝服务,高频消息刷爆opencode子进程,资源耗尽,open_id级限流,Should
+REQ-022,信息泄露,消息内容落盘,隐私泄露,仅内存态处理不落盘,Must
+REQ-011,配置泄露,OPENCODE_SERVER_PASSWORD透传,服务冲突,调用前移除环境变量,Must

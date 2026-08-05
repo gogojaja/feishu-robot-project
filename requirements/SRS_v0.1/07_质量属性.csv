@@ -1,0 +1,8 @@
+﻿需求编号,质量属性,要求,验证标准,优先级
+REQ-NFR-REQ-001,可靠性,可用性≥99%，180s超时容错,统计+超时用例,Must
+REQ-FUNC-REQ-013,可靠性,并发会话安全,并发测试,Must
+REQ-NFR-REQ-002,可维护性,关键事件日志留痕,日志检查,Should
+REQ-SEC-REQ-001,安全性,凭证不泄露,日志扫描,Must
+REQ-SEC-REQ-002,安全性,路径/权限约束,越权用例,Must
+REQ-FUNC-REQ-008,易用性,输出无ANSI乱码,输出检查,Must
+REQ-DATA-REQ-001,隐私,消息不落盘,磁盘扫描,Must

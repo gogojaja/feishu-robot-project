@@ -1,0 +1,8 @@
+﻿需求编号,接口名称,方向,协议,认证,异常处理,版本管理
+REQ-001,飞书事件回调 /feishu/events,入站,HTTPS POST,飞书签名/challenge,无数据400,飞书平台版本
+REQ-006,/api/chat,入站,HTTP POST,无（本地服务）,空消息400,内部
+REQ-007,/health,入站,HTTP GET,无,无,内部
+REQ-008,飞书tenant_access_token API,出站,HTTPS POST,app_id/app_secret,失败重试/告警,飞书平台
+REQ-008,飞书im/v1/messages发送,出站,HTTPS POST,Bearer token,失败记日志,飞书平台
+REQ-002,opencode CLI子进程,出站,subprocess,无（本地）,180s超时/FileNotFound兜底,opencode版本
+REQ-012,config/feishu.yaml读取,内部,文件,无,解析失败告警降级,配置版本

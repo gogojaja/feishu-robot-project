@@ -1,0 +1,13 @@
+﻿需求编号,功能名称,输入,处理逻辑,输出,优先级,依赖,分类
+REQ-001,事件回调与URL验证,飞书POST事件,type=url_verification时返回challenge；event_callback按type分发,challenge响应或处理结果,Must,飞书开放平台,功能
+REQ-002,文本消息转发,im.message.receive_v1 文本消息,校验消息类型为text；忽略机器人自身消息（防死循环）；调用opencode run处理,opencode响应回传飞书,Must,REQ-001/REQ-008,功能
+REQ-003,消息去重,message_id,使用_set+锁判重并记录,重复消息跳过（返回duplicate）,Must,无,功能
+REQ-004,会话上下文保持,open_id,会话字典维护session_id映射，跨消息连续,opencode使用同一session,Must,REQ-002,功能
+REQ-005,非文字消息提示,图片/文件等消息,msg_type非text时返回提示,「只支持文字消息」,Should,无,功能
+REQ-006,HTTP API接口,/api/chat POST,解析message与session_id，调用opencode返回,response+session_id JSON,Should,REQ-002,接口
+REQ-008,Token获取与刷新,app_id/app_secret,请求tenant_access_token，过期自动重取,有效token用于发送消息,Must,飞书开放平台,功能
+REQ-009,输出清理与截断,opencode stdout,剥离ANSI转义与「▶️ 下一步」；截断前保留完整代码块,清理后文本（≤15000字）,Should,REQ-002,功能
+REQ-010,超时保护,opencode子进程,180s超时终止并返回兜底,超时提示/错误消息,Must,REQ-002,非功能
+REQ-011,环境变量隔离,环境变量,移除OPENCODE_SERVER_PASSWORD/USERNAME后调用,无冲突的opencode调用,Must,无,技术约束
+REQ-019,入站长度校验,飞书消息,消息超过长度上限（≥4KB）拒绝处理,超长提示,Must,REQ-002,功能
+REQ-021,会话并发安全,sessions字典,加锁保护读写避免数据竞争,线程安全,Must,REQ-004,功能

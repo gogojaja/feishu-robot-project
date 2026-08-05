@@ -1,0 +1,8 @@
+﻿接口名称,方向,协议,认证,请求,响应,异常处理
+飞书事件回调/feishu/events,入站,HTTPS POST,challenge验证,JSON事件体,challenge/status,无数据400
+HTTP API /api/chat,入站,HTTP POST,无,message+session_id,response+session_id,空消息400
+健康检查 /health,入站,HTTP GET,无,无,{"status":"ok"},无
+飞书tenant_access_token API,出站,HTTPS POST,app_id/app_secret,凭证,token+expire,失败记日志
+飞书im/v1/messages发送,出站,HTTPS POST,Bearer token,receive_id+content,code响应,失败记日志
+opencode CLI子进程,出站,subprocess,本地,message+session,stdout JSON,180s超时/未安装兜底
+config/feishu.yaml,内部,文件,无,读取配置,app_id/app_secret/port,解析失败告警降级

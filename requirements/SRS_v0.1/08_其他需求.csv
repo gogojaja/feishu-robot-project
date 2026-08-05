@@ -1,0 +1,5 @@
+﻿需求编号,分类,内容,优先级
+REQ-DATA-REQ-001,数据管理,消息内容不落盘，仅内存态处理即时销毁,Must
+REQ-SEC-REQ-001,合规,飞书应用密钥与token不写入日志或仓库,Must
+REQ-ENV-REQ-001,操作,仅test环境运行，启动前check_env.py核验,Must
+REQ-NFR-REQ-002,操作,关键事件（token/失败/超时/限流）日志留痕,Should

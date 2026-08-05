@@ -1,0 +1,7 @@
+﻿需求编号,环境项,要求,说明,优先级
+REQ-013,运行环境标记,仅test（.env_type=test）,check_env.py核验,Must
+REQ-013,端口约束,5101/5102/5103,禁止5001/5002/5003,Must
+REQ-012,配置来源,环境变量优先→config/feishu.yaml,无配置退出,Must
+REQ-017,运行时,Python3 + opencode CLI,已装1.17.4,Must
+REQ-002,网络,公网回调可达,需内网穿透,Must
+REQ-014,权限,禁止sudo、禁止/Users/gogo,安全约束,Must

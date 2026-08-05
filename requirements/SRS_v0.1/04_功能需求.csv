@@ -1,0 +1,23 @@
+﻿需求编号,功能分类,描述,输入,输出,优先级
+REQ-FUNC-REQ-001,事件处理,事件回调接收与URL验证,飞书POST事件,challenge响应,Must
+REQ-FUNC-REQ-002,消息处理,接收im.message.receive_v1文本消息转发opencode；忽略机器人自身消息,飞书文本消息,opencode响应,Must
+REQ-FUNC-REQ-003,消息处理,消息去重（message_id幂等）,message_id,重复跳过,Must
+REQ-FUNC-REQ-004,会话管理,按open_id维护session上下文连续,session_id映射,跨消息连续,Must
+REQ-FUNC-REQ-005,消息处理,非文字消息返回提示,图片/文件消息,「只支持文字消息」,Should
+REQ-FUNC-REQ-006,接口,HTTP API /api/chat调用opencode,message+session_id,response JSON,Should
+REQ-FUNC-REQ-007,Token管理,tenant_access_token获取与过期刷新,app_id/app_secret,有效token,Must
+REQ-FUNC-REQ-008,输出处理,ANSI转义清理与「▶️ 下一步」截断,opencode stdout,清理后文本,Must
+REQ-FUNC-REQ-009,输出处理,截断前保留完整代码块,长文本,≤15000字完整代码块,Should
+REQ-FUNC-REQ-010,异常处理,180s超时保护与异常兜底,opencode子进程,超时/错误提示,Must
+REQ-FUNC-REQ-011,环境隔离,移除OPENCODE_SERVER_PASSWORD/USERNAME,环境变量,无冲突调用,Must
+REQ-FUNC-REQ-012,输入校验,入站消息长度上限校验,长消息,超长拒绝提示,Must
+REQ-FUNC-REQ-013,并发安全,会话字典加锁,并发读写,线程安全,Must
+REQ-SEC-REQ-001,凭证保护,不记录/不暴露app_secret与token,日志/仓库,无凭证泄露,Must
+REQ-SEC-REQ-002,权限约束,禁止/Users/gogo路径与sudo,操作请求,拒绝执行,Must
+REQ-SEC-REQ-003,防滥用,open_id级限流,高频消息,限流提示,Should
+REQ-DATA-REQ-001,隐私,消息内容不落盘仅内存态,消息文本,即时销毁,Must
+REQ-ENV-REQ-001,环境约束,仅test环境且端口限5101/5102/5103,部署,check_env核验,Must
+REQ-ENV-REQ-002,配置,环境变量优先→config/feishu.yaml,配置读取,有效凭证,Must
+REQ-NFR-REQ-001,可用性,可用性≥99%且文本响应≤15s,运行监控,达标,Must
+REQ-NFR-REQ-002,可观测性,关键事件日志留痕,运行日志,留痕完整,Should
+REQ-IF-REQ-001,接口契约,飞书事件/API/token/发送接口规格,外部调用,符合规格,Must
