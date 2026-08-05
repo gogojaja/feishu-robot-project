@@ -13,6 +13,7 @@
     - 2026-06-15: 重构为 OpenCode 桥接模式，加入会话追踪
     - 2026-06-15: dedup + 异步处理修复重复回复
     - 2026-08-05: C12 改造——发送失败重试 1 次 + token 连续失败≥3 告警（REQ-FUNC-REQ-017/018）
+    - 2026-08-05: C10 限流 + C11 入站校验——固定窗口 10 条/分 + 4096 字符拒绝（REQ-SEC-REQ-003 / REQ-FUNC-REQ-012）
 """
 
 import os
@@ -45,6 +46,10 @@ class FeishuBot:
         self.sessions: Dict[str, str] = {}
         self._processed_ids: set = set()
         self._dedup_lock = threading.Lock()
+        self._rate_limits: Dict[str, list] = {}
+        self._rate_lock = threading.Lock()
+        self.rate_limit_max = 10
+        self.rate_limit_window = 60
 
     def get_token(self) -> bool:
         url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
@@ -137,6 +142,19 @@ class FeishuBot:
         except Exception as e:
             return f"错误: {e}", session_id
 
+    def _check_rate_limit(self, open_id: str) -> bool:
+        """固定窗口限流：窗口内超阈值返回 False（拒绝）。线程安全。"""
+        now = time.time()
+        with self._rate_lock:
+            records = self._rate_limits.get(open_id, [])
+            records = [t for t in records if now - t < self.rate_limit_window]
+            if len(records) >= self.rate_limit_max:
+                self._rate_limits[open_id] = records
+                return False
+            records.append(now)
+            self._rate_limits[open_id] = records
+            return True
+
     def _process(self, event: dict):
         try:
             sender = event.get("event", {}).get("sender", {})
@@ -156,7 +174,18 @@ class FeishuBot:
             except json.JSONDecodeError:
                 text = content
             text = text.strip()
+
             if not text:
+                return
+
+            if len(text) > 4096:
+                logger.warning(f"入站消息超长（{len(text)} 字符）拒绝处理: {open_id}")
+                self.send(open_id, "消息过长（超过 4096 字符），请精简后重试")
+                return
+
+            if not self._check_rate_limit(open_id):
+                logger.warning(f"触发限流（10 条/分钟）: {open_id}")
+                self.send(open_id, "消息过于频繁（限 10 条/分钟），请稍后再试")
                 return
 
             session_id = self.sessions.get(open_id, "")
