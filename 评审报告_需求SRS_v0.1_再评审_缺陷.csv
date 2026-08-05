@@ -1,0 +1,11 @@
+﻿缺陷编号,需求编号,缺陷描述,标准依据,严重级别,修复方案,状态
+REV-01,REQ-FUNC-REQ-002,混含接收转发与忽略自身消息两个能力,IEEE 29148 Singular,主要,拆分为两条：002接收转发/014忽略自身消息,待修复
+REV-02,REQ-FUNC-REQ-008/009,混含ANSI清理与截断保留代码块两个步骤,IEEE 29148 Singular,主要,拆分为008清理/015截断保留代码块,待修复
+REV-03,REQ-FUNC-REQ-012,「≥4KB」表述歧义（上限或下限不明）,IEEE 29148 Unambiguous,主要,改为「消息长度超过4KB（4096字符）拒绝处理」,待修复
+REV-04,REQ-NFR-REQ-001,响应时间无统计口径（P95/Max）,IEEE 29148 Verifiable,主要,明确为文本应答P95≤15s；可用性按测试环境单机存活率口径,待修复
+REV-05,REQ-SEC-REQ-003,限流未定义窗口算法,IEEE 29148 Verifiable,次要,明确固定窗口10条/分钟/open_id,待修复
+REV-06,REQ-FUNC-REQ-006,Web页面与API混同且Web已降级Could,IEEE 29148 Necessary,次要,拆分为006 API(Should)/016 Web页面(Could),待修复
+REV-07,——,缺失Token刷新失败告警需求,IEEE 29148 Complete,主要,新增017：token刷新连续失败≥3次告警,待修复
+REV-08,——,缺失发送失败重试/告警需求,IEEE 29148 Complete,主要,新增018：send失败记录+可选重试1次,待修复
+REV-09,——,缺失多用户会话隔离安全需求,IEEE 29148 Complete,次要,新增SEC-004：open_id级会话隔离不得串访,待修复
+REV-10,台账08,关联接口列全部误填/feishu/events,可追溯性,主要,逐条修正关联接口字段,待修复

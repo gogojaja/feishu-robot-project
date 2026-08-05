@@ -1,7 +1,7 @@
 ﻿需求编号,指标,量化标准,验证方法,优先级
-REQ-NFR-REQ-001,可用性,≥99%（单机口径）,月度统计,Must
+REQ-NFR-REQ-001,可用性,≥99%（单机存活口径：进程存活/重启率）,月度统计,Must
 REQ-NFR-REQ-001,响应时间,文本应答P95≤15s,抽样计时,Must
 REQ-FUNC-REQ-010,超时阈值,180s强制终止,超时用例,Must
-REQ-FUNC-REQ-012,入站长度上限,≥4KB拒绝,边界用例,Must
-REQ-FUNC-REQ-009,输出截断,≤15000字且保留完整代码块,长输出用例,Must
-REQ-SEC-REQ-003,限流阈值,10条/分钟/open_id（宽松）,压测用例,Should
+REQ-FUNC-REQ-012,入站长度上限,超过4KB（4096字符）拒绝,边界用例,Must
+REQ-FUNC-REQ-015,输出截断,≤15000字且保留完整代码块,长输出用例,Should
+REQ-SEC-REQ-003,限流阈值,固定窗口10条/分钟/open_id,压测用例,Should
