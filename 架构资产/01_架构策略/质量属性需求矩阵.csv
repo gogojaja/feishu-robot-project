@@ -1,0 +1,17 @@
+﻿需求编号,质量属性,场景,量化指标,当前达成方式,验证标准,优先级
+REQ-NFR-REQ-001,可用性,单机服务持续存活,可用性>=99%（进程存活/重启率）,Flask 常驻+health 检查,月度存活统计,Must
+REQ-NFR-REQ-001,性能,文本应答延迟,应答 P95<=15s,opencode run 子进程调用,抽样计时,Must
+REQ-FUNC-REQ-010,可靠性,异常兜底,180s 强制终止,subprocess timeout=180,超时用例,Must
+REQ-FUNC-REQ-013,可靠性,并发会话安全,并发读写不冲突,threading.Lock 保护 sessions,并发测试,Must
+REQ-FUNC-REQ-003,可靠性,重复消息幂等,重复 message_id 跳过,_processed_ids set+Lock,重复用例,Must
+REQ-NFR-REQ-002,可维护性,关键事件日志留痕,token/失败/超时/限流留痕,logging 关键点埋点,日志检查,Should
+REQ-SEC-REQ-001,安全性,凭证不泄露,无 app_secret/token 外泄,凭证仅内存态+不写日志,日志/仓库扫描,Must
+REQ-SEC-REQ-002,安全性,路径/权限约束,拒绝 /Users/gogo 与 sudo,环境约束+代码规范,越权用例,Must
+REQ-SEC-REQ-003,安全性,防滥用限流,固定窗口10条/分钟/open_id,内存计数窗口,压测用例,Should
+REQ-SEC-REQ-004,安全性,会话隔离,open_id 级不串访,按 open_id 键控 sessions,跨用户用例,Must
+REQ-FUNC-REQ-008,易用性,输出无乱码,无 ANSI 转义残留,regex 清理_strip,输出检查,Must
+REQ-FUNC-REQ-015,易用性,长输出截断,<=15000字且保留完整代码块,截断+代码块保护,长输出用例,Should
+REQ-DATA-REQ-001,隐私,消息不落盘,内容仅内存态,仅内存态不写磁盘,磁盘扫描,Must
+REQ-FUNC-REQ-004,功能性,会话上下文连续,按 open_id 跨消息连续,opencode --session 复用,连续对话用例,Must
+REQ-FUNC-REQ-001,功能性,事件回调验证,challenge 1秒内原样返回,Flask url_verification 路由,URL 验证用例,Must
+REQ-FUNC-REQ-007,功能性,token 获取与刷新,过期自动刷新+失败重试,get_token 过期检测,断网用例,Must

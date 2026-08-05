@@ -1,0 +1,27 @@
+﻿范围项,需求来源,架构资产覆盖,覆盖状态,差异说明
+事件回调接收/URL验证,REQ-FUNC-REQ-001,接口设计文档 §2.1,✅ 已覆盖,challenge 1秒返回
+文本消息转发 opencode,REQ-FUNC-REQ-002,组件设计文档 C8,✅ 已覆盖,调用策略 M4 调整
+自身消息忽略,REQ-FUNC-REQ-014,事件处理 C5,✅ 已覆盖,存量逻辑
+消息去重,REQ-FUNC-REQ-003,组件 C7/ADR-003,✅ 已覆盖,内存 set+Lock
+会话上下文连续,REQ-FUNC-REQ-004,ADR-002/C6,✅ 已覆盖,--session 复用
+非文字消息提示,REQ-FUNC-REQ-005,组件 C5,✅ 已覆盖,存量逻辑
+HTTP API /api/chat,REQ-FUNC-REQ-006,接口设计文档 §2.2,✅ 已覆盖,C2
+Web 聊天页,REQ-FUNC-REQ-016,接口设计文档 §2.3,✅ 已覆盖,C3
+token 管理,REQ-FUNC-REQ-007,组件 C12/ADR-005,✅ 已覆盖,过期刷新
+输出清理/截断,REQ-FUNC-REQ-008/015,组件 C9,✅ 已覆盖,代码块保护待完善
+180s 超时,REQ-FUNC-REQ-010,C8/性能基准 B4,✅ 已覆盖,subprocess timeout
+环境变量清理,REQ-FUNC-REQ-011,C8/接口设计 §3.3,✅ 已覆盖,env.pop
+入站 4KB 校验,REQ-FUNC-REQ-012,C11,⚠️ 待开发,缺陷 ARCH-DEF-003
+并发安全,REQ-FUNC-REQ-013,C6/ADR-003,✅ 已覆盖,Lock 保护
+token 告警,REQ-FUNC-REQ-017,C12,⚠️ 待补,缺陷 ARCH-DEF-003
+发送重试,REQ-FUNC-REQ-018,C12,⚠️ 待补,缺陷 ARCH-DEF-003
+凭证保护,REQ-SEC-REQ-001,ADR-005/安全架构 §4,✅ 已覆盖,内存态
+权限约束,REQ-SEC-REQ-002,安全架构 §6,✅ 已覆盖,禁 sudo/路径
+限流,REQ-SEC-REQ-003,C10,⚠️ 待开发,缺陷 ARCH-DEF-003
+会话隔离,REQ-SEC-REQ-004,C6/ADR-005,✅ 已覆盖,open_id 键控
+消息不落盘,REQ-DATA-REQ-001,数据架构/ADR-003,✅ 已覆盖,内存态
+环境约束,REQ-ENV-REQ-001,策略分析 §3,✅ 已覆盖,test/端口
+配置优先级,REQ-ENV-REQ-002,接口设计 §3,✅ 已覆盖,env→yaml
+可用性/性能,REQ-NFR-REQ-001,性能基准,⚠️ 部分验证,端到端待补测
+可观测性,REQ-NFR-REQ-002,安全架构 §5,✅ 已覆盖,审计链
+接口契约,REQ-IF-REQ-001,接口设计文档,✅ 已覆盖,契约固化
