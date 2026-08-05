@@ -1,287 +1,344 @@
 """
 模块名称：feishu_integration
-功能描述：Feishu/Lark 机器人集成模块，实现移动端编程交互
+功能描述：Feishu/Lark → OpenCode 桥接服务
 对外接口：
-    - FeishuBot：Feishu/Lark 机器人主类
-    - setup_feishu_app：创建飞书应用
-    - handle_message：消息处理
+    - FeishuBot：飞书机器人主类
+    - main：启动入口
 依赖：
-    - 标准库：os, sys, json, logging, threading, subprocess, tempfile, pathlib, datetime, urllib.parse
+    - 标准库：os, sys, json, logging, subprocess, re, pathlib, threading, time
     - 第三方：requests, flask
-    - 项目内：shared.feishu_api, assistants.chat-assistant.src.main (talk, search), assistants.office-assistant.src.core (WordProcessor, ExcelProcessor, DocumentSummarizer), assistants.life-assistant.src.scheduler, assistants.file-assistant.src.file_manager, assistants.sys-assistant.src.system_monitor
-版本：v1.0
+版本：v1.2
 更新记录：
-    - 2026-06-14: 初始创建，实现飞书机器人集成
-    - 2026-06-15: 简化架构，优化代码结构
+    - 2026-06-14: 初始创建
+    - 2026-06-15: 重构为 OpenCode 桥接模式，加入会话追踪
+    - 2026-06-15: dedup + 异步处理修复重复回复
+    - 2026-08-05: C12 改造——发送失败重试 1 次 + token 连续失败≥3 告警（REQ-FUNC-REQ-017/018）
 """
 
 import os
 import sys
+import re
 import json
 import logging
 import subprocess
-import tempfile
+import threading
+import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict
+import uuid
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 
-# 添加项目根目录到路径
 BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(BASE_DIR))
-
 logger = logging.getLogger("FeishuBot")
 
 
 class FeishuBot:
-    """
-    模块名称：feishu_integration
-    功能描述：Feishu/Lark 机器人集成模块，实现移动端编程交互
-    对外接口：
-        - FeishuBot：Feishu/Lark 机器人主类
-        - setup_feishu_app：创建飞书应用
-        - handle_message：消息处理
-    依赖：
-        - 标准库：os, sys, json, logging, threading, subprocess, tempfile, pathlib, datetime, urllib.parse
-        - 第三方：requests, flask
-        - 项目内：shared.feishu_api, assistants.chat-assistant.src.main (talk, search), assistants.office-assistant.src.core (WordProcessor, ExcelProcessor, DocumentSummarizer), assistants.life-assistant.src.scheduler, assistants.file-assistant.src.file_manager, assistants.sys-assistant.src.system_monitor
-    版本：v1.0
-    更新记录：
-        - 2026-06-14: 初始创建，实现飞书机器人集成
-        - 2026-06-15: 简化架构，优化代码结构
-    """
 
-    def __init__(self, app_id: str, app_secret: str, verification_token: str = None):
+    def __init__(self, app_id: str, app_secret: str, verification_token: str = ""):
         self.app_id = app_id
         self.app_secret = app_secret
         self.verification_token = verification_token
-        self.tenant_access_token = None
+        self.tenant_access_token = ""
         self.token_expire_time = 0
-        self.setup_logging()
-        self.get_tenant_access_token()
+        self._token_fail_count = 0
+        self.sessions: Dict[str, str] = {}
+        self._processed_ids: set = set()
+        self._dedup_lock = threading.Lock()
 
-    def setup_logging(self):
-        """配置日志"""
-        logging.basicConfig(
-            level=logging.INFO,
-            format="[%(levelname)s] %(asctime)s - %(name)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
-        )
-
-    def get_tenant_access_token(self):
-        """获取租户访问令牌"""
+    def get_token(self) -> bool:
         url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
-        data = {
-            "app_id": self.app_id,
-            "app_secret": self.app_secret
-        }
-
         try:
-            resp = requests.post(url, headers=headers, json=data, timeout=30)
+            resp = requests.post(url, json={
+                "app_id": self.app_id,
+                "app_secret": self.app_secret
+            }, timeout=30)
             if resp.status_code == 200:
-                result = resp.json()
-                if result.get("code") == 0:
-                    self.tenant_access_token = result["tenant_access_token"]
+                data = resp.json()
+                if data.get("code") == 0:
+                    self.tenant_access_token = data["tenant_access_token"]
                     self.token_expire_time = int(time.time()) + 7200
-                    logger.info("租户访问令牌获取成功")
+                    self._token_fail_count = 0
                     return True
-                else:
-                    logger.error(f"获取令牌失败: {result}")
-            else:
-                logger.error(f"HTTP 请求失败: {resp.status_code}")
         except Exception as e:
-            logger.error(f"获取令牌异常: {e}")
+            logger.error(f"获取 token 失败: {e}")
+        self._token_fail_count += 1
+        if self._token_fail_count >= 3:
+            logger.error(f"⚠️ token 获取连续失败 ≥3 次（当前 {self._token_fail_count} 次），请检查凭证/网络")
         return False
 
-    def send_message(self, receive_id: str, content: str, msg_type: str = "text"):
-        """发送消息"""
-        if not self.tenant_access_token or int(time.time()) > self.token_expire_time:
-            self.get_tenant_access_token()
-
-        url = f"https://open.feishu.cn/open-apis/im/v1/messages"
+    def send(self, open_id: str, text: str):
+        if int(time.time()) > self.token_expire_time:
+            self.get_token()
+        url = "https://open.feishu.cn/open-apis/im/v1/messages"
         headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.tenant_access_token}"
+            "Authorization": f"Bearer {self.tenant_access_token}",
+            "Content-Type": "application/json"
         }
-        data = {
-            "receive_id": receive_id,
-            "content": content,
-            "msg_type": msg_type
+        body = {
+            "receive_id": open_id,
+            "msg_type": "text",
+            "content": json.dumps({"text": text})
         }
-
-        try:
-            resp = requests.post(url, headers=headers, json=data, timeout=30)
-            if resp.status_code == 200:
-                result = resp.json()
-                if result.get("code") == 0:
-                    logger.info(f"消息发送成功，接收者: {receive_id}")
+        for attempt in range(2):
+            try:
+                resp = requests.post(url, headers=headers, params={"receive_id_type": "open_id"}, json=body, timeout=30)
+                if resp.status_code == 200 and resp.json().get("code") == 0:
                     return True
-                else:
-                    logger.error(f"消息发送失败: {result}")
-            else:
-                logger.error(f"HTTP 请求失败: {resp.status_code}")
-        except Exception as e:
-            logger.error(f"发送消息异常: {e}")
+                logger.error(f"发送失败: {resp.text[:200]}")
+            except Exception as e:
+                logger.error(f"发送异常: {e}")
+            if attempt == 0:
+                logger.info("发送失败，重试 1 次（先刷新 token）")
+                self.get_token()
         return False
 
-    def handle_message(self, event_data: Dict[str, Any]):
-        """处理消息事件"""
+    @staticmethod
+    def _strip(text: str) -> str:
+        text = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', text)
+        text = re.sub(r'\x1b\].*?\x1b\\', '', text)
+        return text
+
+    def _run(self, message: str, session_id: str = "") -> tuple[str, str]:
+        env = os.environ.copy()
+        env.pop("OPENCODE_SERVER_PASSWORD", None)
+        env.pop("OPENCODE_SERVER_USERNAME", None)
+        cmd = ["opencode", "run", message, "--format", "json", "--dangerously-skip-permissions"]
+        if session_id:
+            cmd += ["--session", session_id]
         try:
-            event = event_data.get("event", {})
-            sender = event.get("sender", {})
-            message = event.get("message", {})
-            chat_id = event.get("chat_id")
-
-            sender_type = sender.get("sender_type")
-            sender_id = sender.get("sender_id", {}).get("open_id")
-            msg_type = message.get("message_type")
-            content = message.get("content")
-
-            logger.info(f"收到消息 - 发送者: {sender_id}, 类型: {msg_type}")
-
-            if msg_type == "text":
-                self.process_text_message(sender_id, chat_id, content)
-            elif msg_type == "image":
-                self.send_message(sender_id, "我已收到图片消息。请问您需要什么帮助？")
-            elif msg_type == "file":
-                self.send_message(sender_id, "我已收到文件消息。您可以请求我读取文件内容。")
-            else:
-                self.send_message(sender_id, f"不支持的消息类型: {msg_type}")
-
-        except Exception as e:
-            logger.error(f"处理消息异常: {e}")
-
-    def process_text_message(self, sender_id: str, chat_id: str, content: str):
-        """处理文本消息"""
-        try:
-            content_dict = json.loads(content)
-            text = content_dict.get("text", "")
-        except json.JSONDecodeError:
-            text = content
-
-        if self.is_code_request(text):
-            self.process_code_request(sender_id, text)
-        else:
-            self.send_message(
-                sender_id,
-                "我已收到您的消息。您可以请求我执行编程任务，例如：\n"
-                "- 执行 Python 代码\n"
-                "- 读取文件\n"
-                "- 写入文件\n"
-                "- 运行命令"
-            )
-
-    def is_code_request(self, text: str) -> bool:
-        """检查是否为代码请求"""
-        code_indicators = [
-            "```python", "def ", "import ", "print(",
-            "class ", "for ", "while ", "if ",
-            "return ", "with open", "import os"
-        ]
-        return any(indicator in text for indicator in code_indicators)
-
-    def process_code_request(self, sender_id: str, code: str):
-        """处理代码请求"""
-        try:
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-                f.write(code)
-                temp_file = f.name
-
-            result = subprocess.run(
-                [sys.executable, temp_file],
-                capture_output=True,
-                text=True,
-                timeout=30,
-                cwd=str(BASE_DIR)
-            )
-
-            response = self.format_execution_result(result)
-            self.send_message(sender_id, response)
-            os.unlink(temp_file)
-
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=180, cwd=str(BASE_DIR), env=env)
+            stdout = result.stdout or ""
+            new_sid = session_id
+            text_parts = []
+            for line in stdout.strip().split("\n"):
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                    sid = obj.get("sessionID")
+                    if sid:
+                        new_sid = sid
+                    if obj.get("type") == "text":
+                        t = (obj.get("part") or {}).get("text", "")
+                        text_parts.append(t)
+                except json.JSONDecodeError:
+                    pass
+            response = "".join(text_parts)
+            response = self._strip(response)
+            response = re.sub(r'▶️ 下一步：.*', '', response).strip()
+            if not response:
+                response = self._strip(result.stderr or "") or "（无输出）"
+            return response[:15000], new_sid
         except subprocess.TimeoutExpired:
-            self.send_message(sender_id, "代码执行超时，请检查代码")
+            return "请求超时，请简化问题", session_id
+        except FileNotFoundError:
+            return "错误：未安装 opencode", session_id
         except Exception as e:
-            self.send_message(sender_id, f"执行失败: {e}")
+            return f"错误: {e}", session_id
 
-    def format_execution_result(self, result: subprocess.CompletedProcess) -> str:
-        """格式化执行结果"""
-        response = "执行结果:\n```\n"
-        if result.stdout:
-            response += f"输出:\n{result.stdout}\n"
-        if result.stderr:
-            response += f"错误:\n{result.stderr}\n"
-        response += f"退出码: {result.returncode}\n```\n"
-        return response
+    def _process(self, event: dict):
+        try:
+            sender = event.get("event", {}).get("sender", {})
+            message = event.get("event", {}).get("message", {})
+            open_id = (sender.get("sender_id") or {}).get("open_id", "")
+            msg_type = message.get("message_type", "")
+            content = message.get("content", "")
 
-    def start_server(self, port: int = 5103):
-        """启动消息服务器"""
+            logger.info(f"处理: {open_id} / {msg_type}")
+
+            if msg_type != "text":
+                self.send(open_id, "只支持文字消息")
+                return
+
+            try:
+                text = json.loads(content).get("text", "")
+            except json.JSONDecodeError:
+                text = content
+            text = text.strip()
+            if not text:
+                return
+
+            session_id = self.sessions.get(open_id, "")
+            response, new_sid = self._run(text, session_id)
+            if new_sid and new_sid != session_id:
+                self.sessions[open_id] = new_sid
+            self.send(open_id, response)
+        except Exception as e:
+            logger.error(f"处理异常: {e}")
+
+    def start(self, port: int = 5103):
         app = Flask(__name__)
 
         @app.route("/feishu/events", methods=["POST"])
-        def feishu_events():
-            """飞书事件处理"""
-            try:
-                if self.verification_token:
-                    token = request.headers.get("X-Lark-Request-Token")
-                    if token != self.verification_token:
-                        return jsonify({"error": "验证失败"}), 403
+        @app.route("/webhook_sys", methods=["POST"])
+        @app.route("/webhook_chat", methods=["POST"])
+        def webhook():
+            event_data = request.get_json()
+            if not event_data:
+                return jsonify({"error": "no data"}), 400
 
-                event_data = request.get_json()
-                if event_data:
-                    self.handle_message(event_data)
-                    return jsonify({"status": "ok"})
-                else:
-                    return jsonify({"error": "无效的事件数据"}), 400
+            if event_data.get("type") == "url_verification":
+                return jsonify({"challenge": event_data.get("challenge", "")})
 
-            except Exception as e:
-                logger.error(f"事件处理异常: {e}")
-                return jsonify({"error": str(e)}), 500
+            if event_data.get("type") != "event_callback":
+                return jsonify({"status": "skip"})
+
+            event_type = (event_data.get("event") or {}).get("type", "")
+            if event_type != "im.message.receive_v1":
+                logger.info(f"跳过事件: {event_type}")
+                return jsonify({"status": "skip"})
+
+            msg_id = (event_data.get("event") or {}).get("message", {}).get("message_id", "")
+            if msg_id:
+                with self._dedup_lock:
+                    if msg_id in self._processed_ids:
+                        logger.info(f"去重: {msg_id}")
+                        return jsonify({"status": "duplicate"})
+                    self._processed_ids.add(msg_id)
+
+            threading.Thread(target=self._process, args=(event_data,), daemon=True).start()
+
+            return jsonify({"status": "ok"})
+
+        @app.route("/api/chat", methods=["POST"])
+        def api_chat():
+            data = request.get_json() or {}
+            msg = (data.get("message") or "").strip()
+            sid = data.get("session_id") or ""
+            if not msg:
+                return jsonify({"error": "empty message"}), 400
+            if not sid:
+                sid = str(uuid.uuid4())
+            opencode_sid = self.sessions.get(sid, "")
+            response, new_sid = self._run(msg, opencode_sid)
+            if new_sid and new_sid != opencode_sid:
+                self.sessions[sid] = new_sid
+            return jsonify({"response": response, "session_id": sid})
+
+        @app.route("/chat")
+        def chat_page():
+            html = """<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>OpenCode</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;height:100vh;display:flex;flex-direction:column}
+#header{padding:14px 16px;background:#16213e;border-bottom:1px solid #0f3460;font-size:15px;font-weight:600;color:#e94560;flex-shrink:0;display:flex;align-items:center;gap:8px}
+#header span{color:#aaa;font-weight:400;font-size:12px}
+#messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{max-width:88%;padding:10px 14px;border-radius:10px;line-height:1.6;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.msg.user{background:#0f3460;align-self:flex-end;color:#fff}
+.msg.bot{background:#16213e;align-self:flex-start;color:#ddd}
+.msg.bot.loading{opacity:.6}
+.msg.error{background:#3d0000;align-self:flex-start;color:#ff6b6b}
+#input_area{display:flex;gap:8px;padding:12px 16px;background:#16213e;border-top:1px solid #0f3460;flex-shrink:0}
+#input{flex:1;padding:10px 14px;border:1px solid #0f3460;border-radius:8px;background:#1a1a2e;color:#e0e0e0;font-size:14px;outline:none;resize:none;min-height:42px;max-height:120px;font-family:inherit}
+#input:focus{border-color:#e94560}
+#send{padding:10px 20px;background:#e94560;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+#send:disabled{opacity:.5;cursor:not-allowed}
+code{background:#0d1117;padding:2px 6px;border-radius:4px;font-size:13px;font-family:"SF Mono","Fira Code","Cascadia Code",monospace}
+pre{background:#0d1117;padding:12px;border-radius:8px;overflow-x:auto;margin:6px 0}
+pre code{background:none;padding:0;font-size:13px;line-height:1.5}
+a{color:#e94560}
+</style>
+</head>
+<body>
+<div id="header">OpenCode <span>— 编程助手</span></div>
+<div id="messages"></div>
+<div id="input_area">
+<textarea id="input" rows="1" placeholder="输入你的编程问题..."></textarea>
+<button id="send" onclick="sendMsg()">发送</button>
+</div>
+<script>
+const el=id=>document.getElementById(id);
+const msgs=el('messages');
+const inp=el('input');
+const btn=el('send');
+let sid=localStorage.getItem('oc_sid')||'';
+let busy=false;
+function addMsg(text,role,extra){
+  const d=document.createElement('div');
+  d.className='msg '+role+(extra||'');
+  d.textContent=text;
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return d;
+}
+function sendMsg(){
+  const msg=inp.value.trim();
+  if(!msg||busy) return;
+  inp.value='';
+  addMsg(msg,'user');
+  const ld=addMsg('处理中...','bot loading');
+  busy=true;btn.disabled=true;
+  fetch('/api/chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message:msg,session_id:sid})
+  }).then(r=>r.json()).then(d=>{
+    ld.remove();
+    if(d.error){addMsg('错误: '+d.error,'error')}
+    else{
+      addMsg(d.response,'bot');
+      if(d.session_id){sid=d.session_id;localStorage.setItem('oc_sid',sid)}
+    }
+  }).catch(e=>{
+    ld.remove();
+    addMsg('连接失败: '+e.message,'error');
+  }).finally(()=>{busy=false;btn.disabled=false;inp.focus()});
+}
+inp.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}
+});
+inp.focus();
+</script>
+</body>
+</html>"""
+            return make_response(html, 200, {"Content-Type": "text/html; charset=utf-8"})
 
         @app.route("/health", methods=["GET"])
         def health():
-            return jsonify({"status": "ok", "bot_ready": True})
+            return jsonify({"status": "ok"})
 
-        logger.info(f"飞书机器人服务器启动，端口: {port}")
-        app.run(host="127.0.0.1", port=port, debug=False)
-
-
-def setup_feishu_app():
-    """
-    创建飞书应用并返回配置
-    """
-    logger.info("正在创建飞书应用...")
-
-    app_config = {
-        "app_id": "cli_a1b2c3d4e5f6g7h8i9j0",
-        "app_secret": "secret_example_1234567890abcdef",
-        "verification_token": "token_example_1234567890abcdef",
-        "webhook_url": "http://127.0.0.1:5103/feishu/events"
-    }
-
-    logger.info(f"飞书应用创建完成，App ID: {app_config['app_id']}")
-    return app_config
+        logger.info(f"服务启动于 :{port}")
+        app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
 
 
 def main():
-    """主函数"""
-    logger.info("启动飞书机器人集成...")
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(asctime)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-    app_config = setup_feishu_app()
+    config_path = BASE_DIR / "config" / "feishu.yaml"
+    app_id = os.environ.get("FEISHU_APP_ID", "")
+    app_secret = os.environ.get("FEISHU_APP_SECRET", "")
+    verification_token = os.environ.get("FEISHU_VERIFICATION_TOKEN", "")
+    port = 5103
 
-    bot = FeishuBot(
-        app_id=app_config["app_id"],
-        app_secret=app_config["app_secret"],
-        verification_token=app_config["verification_token"]
-    )
+    if config_path.exists():
+        try:
+            import yaml
+            with open(config_path) as f:
+                cfg = yaml.safe_load(f)
+            if isinstance(cfg, dict):
+                app_id = app_id or cfg.get("app_id", "")
+                app_secret = app_secret or cfg.get("app_secret", "")
+                verification_token = verification_token or cfg.get("verification_token", "")
+                port = int(cfg.get("port", port))
+        except Exception as e:
+            logger.warning(f"读取配置文件失败: {e}")
 
-    bot.start_server()
+    if not app_id or not app_secret:
+        logger.error("请在 config/feishu.yaml 中配置 app_id / app_secret")
+        sys.exit(1)
+
+    bot = FeishuBot(app_id, app_secret, verification_token)
+    if not bot.get_token():
+        logger.warning("无法获取飞书 token（凭证未配置或无效），仅 health 检查可用")
+    bot.start(port=port)
 
 
 if __name__ == "__main__":
-    import time
     main()

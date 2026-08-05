@@ -1,0 +1,7 @@
+﻿任务编号,任务名称,模块,关联需求,关联缺陷,优先级,排期,状态,交付物
+T1,C8 opencode 调用策略改造,opencode_runner,REQ-FUNC-REQ-002/004,ARCH-DEF-001,高,次批,待开发,调用路径 spike+代码改造
+T2,C9 输出截断代码块保护,output_sanitizer,REQ-FUNC-REQ-015,无,中,中批,待开发,截断保留代码块实现
+T3,C10 open_id 限流器,rate_limiter,REQ-SEC-REQ-003,ARCH-DEF-003,高,次批,待开发,固定窗口10条/分
+T4,C11 入站 4KB 校验,input_validator,REQ-FUNC-REQ-012,ARCH-DEF-003,高,次批,待开发,4096字符拒绝
+T5,C12 发送重试+token告警,feishu_client,REQ-FUNC-REQ-017/018,ARCH-DEF-003,高,首批,待开发,重试1次+连续失败3告警
+T6,单元测试,全部模块,AGENTS §16,无,高,随任务,待开发,3组用例+覆盖率

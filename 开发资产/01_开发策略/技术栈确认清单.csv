@@ -1,0 +1,7 @@
+﻿技术项,选定版本,来源依据,替代方案,状态,备注
+Python,3.9+,架构基线 ADR-004,无,已确认,运行时实测 3.9
+Flask,>=2.3.3,requirements.txt+架构,FastAPI（无需）,已确认,threaded=True
+requests,>=2.31.0,requirements.txt,httpx（无需）,已确认,存量依赖
+pyyaml,>=6.0,requirements.txt,无,已确认,配置解析
+opencode CLI,1.17.4,架构 ADR-002,serve+attach 模式（T1 验证）,已确认,核心依赖
+ngrok,最新（本地验证）,架构 ADR-001,飞书长连接 SDK,验证用,穿透回调

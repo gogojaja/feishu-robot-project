@@ -1,0 +1,6 @@
+﻿依赖,锁定版本,适配Python区间,用途,来源
+requests,>=2.31.0,3.9+,飞书 HTTPS 调用,requirements.txt
+flask,>=2.3.3,3.9+,Web 服务框架,requirements.txt
+pyyaml,>=6.0,3.9+,config/feishu.yaml 解析,requirements.txt
+opencode CLI,1.17.4,独立二进制,编程任务执行,本机已装
+Python,3.9.6,3.9+,运行环境,系统已装
