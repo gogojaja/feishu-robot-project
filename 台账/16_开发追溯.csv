@@ -1,2 +1,9 @@
-﻿需求编号,模块,文件,函数,测试用例,追溯状态,基线版本
+﻿﻿需求编号,模块,文件,函数,测试用例,追溯状态,基线版本
 ,（开发阶段创建）,——,——,——,未开始,v0.2
+REQ-FUNC-REQ-002,C8,src/feishu_integration.py,_run,test_unit.py TestC8RunCommand,已实现,v0.3
+REQ-FUNC-REQ-004,C8,src/feishu_integration.py,_run,test_unit.py TestC8RunCommand,已实现,v0.3
+REQ-FUNC-REQ-012,C11,src/feishu_integration.py,_process,test_unit.py TestC11InputValidation,已实现,v0.3
+REQ-FUNC-REQ-015,C9,src/feishu_integration.py,_truncate,test_unit.py TestC9Truncate,已实现,v0.3
+REQ-FUNC-REQ-017,C12,src/feishu_integration.py,send,test_unit.py TestC12SendRetryTokenAlert,已实现,v0.3
+REQ-FUNC-REQ-018,C12,src/feishu_integration.py,get_token,test_unit.py TestC12SendRetryTokenAlert,已实现,v0.3
+REQ-SEC-REQ-003,C10,src/feishu_integration.py,_check_rate_limit,test_unit.py TestC10RateLimit,已实现,v0.3
