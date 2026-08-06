@@ -14,6 +14,7 @@
     - 2026-06-15: dedup + 异步处理修复重复回复
     - 2026-08-05: C12 改造——发送失败重试 1 次 + token 连续失败≥3 告警（REQ-FUNC-REQ-017/018）
     - 2026-08-05: C10 限流 + C11 入站校验——固定窗口 10 条/分 + 4096 字符拒绝（REQ-SEC-REQ-003 / REQ-FUNC-REQ-012）
+    - 2026-08-05: C9 截断代码块保护——超长输出保留完整代码块（REQ-FUNC-REQ-015）
 """
 
 import os
@@ -104,6 +105,30 @@ class FeishuBot:
         text = re.sub(r'\x1b\].*?\x1b\\', '', text)
         return text
 
+    @staticmethod
+    def _truncate(text: str, limit: int = 15000) -> str:
+        """截断输出，保留完整代码块（REQ-FUNC-REQ-015）。"""
+        if len(text) <= limit:
+            return text
+        lines = text.split("\n")
+        in_code = False
+        total = 0
+        kept = []
+        for idx, line in enumerate(lines):
+            if line.strip().startswith("```"):
+                in_code = not in_code
+            if total + len(line) + 1 > limit:
+                if in_code:
+                    while kept and not kept[-1].strip().startswith("```"):
+                        total -= len(kept.pop()) + 1
+                    if kept:
+                        kept.pop()
+                kept.append("\n…（内容已截断）")
+                return "\n".join(kept)
+            kept.append(line)
+            total += len(line) + 1
+        return text[:limit]
+
     def _run(self, message: str, session_id: str = "") -> tuple[str, str]:
         env = os.environ.copy()
         env.pop("OPENCODE_SERVER_PASSWORD", None)
@@ -134,7 +159,7 @@ class FeishuBot:
             response = re.sub(r'▶️ 下一步：.*', '', response).strip()
             if not response:
                 response = self._strip(result.stderr or "") or "（无输出）"
-            return response[:15000], new_sid
+            return self._truncate(response), new_sid
         except subprocess.TimeoutExpired:
             return "请求超时，请简化问题", session_id
         except FileNotFoundError:
