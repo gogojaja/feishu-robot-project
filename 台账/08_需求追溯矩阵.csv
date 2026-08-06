@@ -1,24 +1,24 @@
-﻿需求编号,需求描述,来源,优先级,关联功能模块,关联接口,关联数据实体,关联测试用例,关联设计文档,变更记录,追溯状态
+﻿﻿需求编号,需求描述,来源,优先级,关联功能模块,关联接口,关联数据实体,关联测试用例,关联设计文档,变更记录,追溯状态
 REQ-FUNC-REQ-001,事件回调,REQ-001,Must,桥接服务,/feishu/events,内存态,待测试阶段,接口设计§2.1,无,已追溯
-REQ-FUNC-REQ-002,消息转发,REQ-002,Must,桥接服务,opencode CLI,内存态,待测试阶段,组件设计C8/ADR-002,无,已追溯
+REQ-FUNC-REQ-002,消息转发,REQ-002,Must,桥接服务,opencode CLI,内存态,tests/test_unit.py TestC8RunCommand,组件设计C8/ADR-002,无,已实现
 REQ-FUNC-REQ-014,回声控制,REQ-024,Must,桥接服务,飞书事件,内存态,待测试阶段,组件设计C5,无,已追溯
 REQ-FUNC-REQ-003,去重,REQ-003,Must,桥接服务,/feishu/events,内存态,待测试阶段,组件设计C7/ADR-003,无,已追溯
-REQ-FUNC-REQ-004,会话,REQ-004,Must,桥接服务,opencode CLI,内存态,待测试阶段,ADR-002/C6,无,已追溯
+REQ-FUNC-REQ-004,会话,REQ-004,Must,桥接服务,opencode CLI,内存态,tests/test_unit.py TestC8RunCommand,ADR-002/C6,无,已实现
 REQ-FUNC-REQ-005,非文字提示,REQ-005,Should,桥接服务,/feishu/events,内存态,待测试阶段,组件设计C5,无,已追溯
 REQ-FUNC-REQ-006,API,REQ-006,Should,桥接服务,/api/chat,内存态,待测试阶段,接口设计§2.2/C2,无,已追溯
 REQ-FUNC-REQ-016,Web页面,REQ-025,Could,桥接服务,/chat,内存态,待测试阶段,接口设计§2.3/C3,无,已追溯
 REQ-FUNC-REQ-007,Token,REQ-008,Must,桥接服务,飞书token API,内存态,待测试阶段,组件设计C12/ADR-005,无,已追溯
 REQ-FUNC-REQ-008,输出清理,REQ-009,Should,桥接服务,opencode CLI,内存态,待测试阶段,组件设计C9,无,已追溯
-REQ-FUNC-REQ-015,截断保留代码块,REQ-026,Should,桥接服务,opencode CLI,内存态,待测试阶段,组件设计C9,无,已追溯
+REQ-FUNC-REQ-015,截断保留代码块,REQ-026,Should,桥接服务,opencode CLI,内存态,tests/test_unit.py TestC9Truncate,组件设计C9,无,已实现
 REQ-FUNC-REQ-010,超时,REQ-010,Must,桥接服务,opencode CLI,内存态,待测试阶段,组件设计C8/性能B4,无,已追溯
 REQ-FUNC-REQ-011,环境隔离,REQ-011,Must,桥接服务,env,内存态,待测试阶段,接口设计§3.3/C8,无,已追溯
-REQ-FUNC-REQ-012,长度校验,REQ-019,Must,桥接服务,/feishu/events,内存态,待测试阶段,组件设计C11,无,已追溯
+REQ-FUNC-REQ-012,长度校验,REQ-019,Must,桥接服务,/feishu/events,内存态,tests/test_unit.py TestC11InputValidation,组件设计C11,无,已实现
 REQ-FUNC-REQ-013,并发安全,REQ-021,Must,桥接服务,内存字典,内存态,待测试阶段,组件设计C6/ADR-003,无,已追溯
-REQ-FUNC-REQ-017,Token告警,REQ-027,Must,桥接服务,飞书token API,内存态,待测试阶段,组件设计C12,无,已追溯
-REQ-FUNC-REQ-018,发送重试,REQ-028,Must,桥接服务,飞书消息API,内存态,待测试阶段,组件设计C12,无,已追溯
+REQ-FUNC-REQ-017,Token告警,REQ-027,Must,桥接服务,飞书token API,内存态,tests/test_unit.py TestC12SendRetryTokenAlert,组件设计C12,无,已实现
+REQ-FUNC-REQ-018,发送重试,REQ-028,Must,桥接服务,飞书消息API,内存态,tests/test_unit.py TestC12SendRetryTokenAlert,组件设计C12,无,已实现
 REQ-SEC-REQ-001,凭证保护,REQ-018,Must,桥接服务,日志/仓库,内存态,待测试阶段,ADR-005/安全架构§4,无,已追溯
 REQ-SEC-REQ-002,权限约束,REQ-014,Must,桥接服务,运行环境,内存态,待测试阶段,安全架构§6,无,已追溯
-REQ-SEC-REQ-003,限流,REQ-020,Should,桥接服务,飞书事件,内存态,待测试阶段,组件设计C10,无,已追溯
+REQ-SEC-REQ-003,限流,REQ-020,Should,桥接服务,飞书事件,内存态,tests/test_unit.py TestC10RateLimit,组件设计C10,无,已实现
 REQ-SEC-REQ-004,会话隔离,REQ-029,Must,桥接服务,内存字典,内存态,待测试阶段,C6/ADR-005,无,已追溯
 REQ-DATA-REQ-001,隐私,REQ-022,Must,桥接服务,内存态,内存态,待测试阶段,数据架构/ADR-003,无,已追溯
 REQ-ENV-REQ-001,环境约束,REQ-013,Must,桥接服务,check_env,内存态,待测试阶段,策略分析§3,无,已追溯
