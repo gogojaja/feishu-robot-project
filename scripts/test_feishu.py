@@ -4,7 +4,7 @@
 对外接口：
     - test_feishu_integration：测试飞书集成功能
     - test_message_handling：测试消息处理
-    - test_code_execution：测试代码执行
+    - test_opencode_bridge：测试 OpenCode 桥接功能
 依赖：
     - 标准库：os, sys, json, logging, subprocess, tempfile, pathlib, datetime, urllib.parse
     - 第三方：requests, flask
@@ -12,7 +12,7 @@
 版本：v1.0
 更新记录：
     - 2026-06-14: 初始创建，提供测试用例
-    - 2026-06-15: 更新测试脚本，匹配简化架构
+    - 2026-06-15: 更新测试脚本，匹配 OpenCode 桥接架构
 """
 
 import os
@@ -154,70 +154,86 @@ def test_message_handling():
     print("=" * 60)
 
 
-def test_code_execution():
-    """测试代码执行"""
+def test_opencode_bridge():
+    """测试 OpenCode 桥接功能"""
     print("\n" + "=" * 60)
-    print("测试代码执行")
+    print("测试 OpenCode 桥接功能")
     print("=" * 60)
 
-    test_codes = [
-        "print('Hello, World!')",
-        "def add(a, b):\n    return a + b\nprint(add(1, 2))",
-        "import json\ndata = {'name': 'test', 'value': 123}\nprint(json.dumps(data))"
+    test_messages = [
+        "Hi",
+        "list files in current directory",
+        "what time is it?"
     ]
 
-    for i, code in enumerate(test_codes, 1):
-        print(f"\n{i}. 执行代码:")
-        print(f"   代码: {code[:50]}...")
-
-        # 创建临时文件执行代码
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(code)
-            temp_file = f.name
-
+    for i, msg in enumerate(test_messages, 1):
+        print(f"\n{i}. 发送消息: {msg}")
         try:
-            # 执行代码
+            env = os.environ.copy()
+            env.pop("OPENCODE_SERVER_PASSWORD", None)
+            env.pop("OPENCODE_SERVER_USERNAME", None)
+            cmd = [
+                "opencode", "run", msg, "--format", "json",
+                "--model", "opencode/deepseek-v4-flash-free",
+                "--attach", "http://127.0.0.1:5102",
+            ]
             result = subprocess.run(
-                [sys.executable, temp_file],
+                cmd,
                 capture_output=True,
                 text=True,
-                timeout=30,
-                cwd=str(BASE_DIR)
+                timeout=180,
+                cwd=str(BASE_DIR),
+                env=env
             )
-
-            print(f"   执行结果:")
-            if result.stdout:
-                print(f"     输出: {result.stdout.strip()}")
-            if result.stderr:
-                print(f"     错误: {result.stderr.strip()}")
-            print(f"     退出码: {result.returncode}")
-
+            text_parts = []
+            for line in (result.stdout or "").strip().split("\n"):
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                    if obj.get("type") == "text":
+                        t = (obj.get("part") or {}).get("text", "")
+                        if t:
+                            text_parts.append(t)
+                except json.JSONDecodeError:
+                    pass
+            response = "".join(text_parts)
+            if response:
+                import re
+                clean = re.sub(r'▶️ 下一步：.*', '', response).strip()
+                print(f"   ✅ 响应: {clean[:80]}")
+            else:
+                err = (result.stderr or "").strip() or "（无输出）"
+                print(f"   ❌ {err[:100]}")
         except subprocess.TimeoutExpired:
-            print(f"   执行超时")
+            print(f"   ❌ 超时")
         except Exception as e:
-            print(f"   执行失败: {e}")
-        finally:
-            # 清理临时文件
-            if os.path.exists(temp_file):
-                os.unlink(temp_file)
+            print(f"   ❌ 错误: {e}")
 
     print("\n" + "=" * 60)
-    print("代码执行测试完成")
+    print("OpenCode 桥接测试完成")
     print("=" * 60)
 
 
-def test_integration_with_free_api_hub():
-    """测试与 Free API Hub 的集成"""
+def test_integration_check():
+    """测试与 OpenCode 的集成"""
     print("\n" + "=" * 60)
-    print("测试与 Free API Hub 的集成")
+    print("测试 OpenCode 集成")
     print("=" * 60)
 
-    # 检查 Free API Hub 组件
+    # 检查 opencode 是否可用
+    try:
+        result = subprocess.run(["which", "opencode"], capture_output=True, text=True)
+        if result.returncode == 0:
+            print(f"  ✅ OpenCode 可用: {result.stdout.strip()}")
+        else:
+            print(f"  ❌ OpenCode 未安装")
+    except Exception as e:
+        print(f"  ❌ 检查失败: {e}")
+
+    # 检查项目核心文件
     components = [
-        ("agent.py", "AI Agent 层"),
-        ("gateway.py", "APIGateway"),
-        ("server.py", "Flask 服务"),
-        ("feishu_integration.py", "飞书集成")
+        ("feishu_integration.py", "飞书-OpenCode 桥接"),
     ]
 
     for file_name, component in components:
@@ -227,24 +243,8 @@ def test_integration_with_free_api_hub():
         else:
             print(f"  ❌ {component} ({file_name}) - 文件不存在")
 
-    # 检查脚本
-    scripts = [
-        "scripts/start.sh",
-        "scripts/stop.sh",
-        "scripts/start-feishu.sh",
-        "scripts/stop-feishu.sh"
-    ]
-
-    print("\n  脚本:")
-    for script in scripts:
-        script_path = BASE_DIR / script
-        if script_path.exists():
-            print(f"    ✅ {script}")
-        else:
-            print(f"    ❌ {script}")
-
     print("\n" + "=" * 60)
-    print("集成测试完成")
+    print("集成检查完成")
     print("=" * 60)
 
 
@@ -257,8 +257,8 @@ def main():
     # 运行所有测试
     test_feishu_integration()
     test_message_handling()
-    test_code_execution()
-    test_integration_with_free_api_hub()
+    test_opencode_bridge()
+    test_integration_check()
 
     print("\n" + "=" * 60)
     print("所有测试完成！")

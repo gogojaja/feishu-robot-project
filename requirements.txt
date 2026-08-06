@@ -1,12 +1,3 @@
-# Free API Hub — 飞书/Lark 机器人集成依赖
-# 用于移动端编程交互，实现飞书/Lark 平台与 AI 编程助手的无缝连接
-
-# 核心依赖
 requests>=2.31.0
 flask>=2.3.3
-
-# 开发依赖
-pytest>=7.4.3
-
-# 文档依赖
-markdown>=3.5.2
+pyyaml>=6.0
