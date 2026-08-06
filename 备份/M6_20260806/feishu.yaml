@@ -1,0 +1,6 @@
+app_id: "cli_aa9c8257d27a9bb5"
+app_secret: "your_app_secret_here"
+verification_token: ""
+
+host: "0.0.0.0"
+port: 5103

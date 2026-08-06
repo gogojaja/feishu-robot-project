@@ -1,0 +1,9 @@
+步骤,内容,结果,耗时,执行人,备注
+1,前置检查 check_env.py,成功,<1分钟,AI助理,.env_type=test 通过
+2,构建部署包核对 git HEAD d274026,成功,——,AI助理,清单核对
+3,备份 备份/M6_20260806（5 文件）,成功,<1分钟,AI助理,cmp 一致性验证
+4,停止旧服务 stop-feishu.sh,成功,5s,AI助理,PID 67977/67971
+5,启动 start-feishu.sh,成功,15s,AI助理,serve PID 1700 / Flask PID 1709
+6,冒烟 /health + serve:200 + test_feishu.py,成功,3分钟,AI助理,桥接 3 条全过
+7,真实链路 POST /feishu/events 回调解析,成功,——,AI助理,test open_id 属预期
+8,稳定期观察 2-4h,进行中,——,AI助理,日志无异常

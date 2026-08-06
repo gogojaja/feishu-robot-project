@@ -1,0 +1,4 @@
+编号,问题,影响,规避/workaround,状态
+KNOWN-001,真实 open_id 推送未验证,发送被拒（test open_id 无效）,投产时用真实飞书应用验证,待投产验证
+KNOWN-002,P95 性能基准未测（volcark 未充值）,性能基线缺失,充值后补测（ARCH-DEF-002）,待补测
+KNOWN-003,Flask 开发服务器（非生产 WSGI）,不适合高并发生产,test 环境可接受；生产禁,已知可接受
