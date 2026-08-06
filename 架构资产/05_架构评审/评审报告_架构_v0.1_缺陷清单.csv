@@ -1,4 +1,4 @@
-﻿缺陷编号,严重程度,所属环节,缺陷描述,影响分析,处置方案,状态,关联需求,闭环日期
-ARCH-DEF-001,次要,原型验证,opencode run 直调模式报 Session not found，存量调用方式在 test 环境不可直接运行,影响 C8 OpenCodeRunner 实现，需调整调用策略（serve+attach 或持久 server）,M4 开发阶段 spike 验证备选调用路径并改造 C8,已登记待闭环,REQ-FUNC-REQ-002/004,
-ARCH-DEF-002,次要,原型验证,模型推理链路在当前环境返回 UnknownError，端到端 P95≤15s 未实测,影响性能指标验证完整性，不阻断架构骨架,性能基准 v0.2 在 M4 模型链路可用后补测,已登记待闭环,REQ-NFR-REQ-001,
+﻿﻿缺陷编号,严重程度,所属环节,缺陷描述,影响分析,处置方案,状态,关联需求,闭环日期
+ARCH-DEF-001,次要,原型验证,opencode run 直调模式报 Session not found，存量调用方式在 test 环境不可直接运行,影响 C8 OpenCodeRunner 实现，需调整调用策略（serve+attach 或持久 server）,M4 开发阶段 spike 验证备选调用路径并改造 C8,已登记待闭环,已闭环,根因=DB schema 半迁移（缺 replacement_seq 列）；serve+attach+free 模型验证通过
+ARCH-DEF-002,次要,原型验证,模型推理链路在当前环境返回 UnknownError，端到端 P95≤15s 未实测,影响性能指标验证完整性，不阻断架构骨架,性能基准 v0.2 在 M4 模型链路可用后补测,已登记待闭环,已闭环,根因同 001（DB schema）；非模型问题；P95 待 volcark 充值后补测
 ARCH-DEF-003,提示,架构设计,C10 限流/C11 入站校验/C12 重试告警为需求要求但存量未实现,功能缺口，属开发阶段输入,列入 M4 开发待办清单,已登记,REQ-SEC-REQ-003/REQ-FUNC-REQ-012/017/018,

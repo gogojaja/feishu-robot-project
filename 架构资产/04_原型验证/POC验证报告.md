@@ -42,9 +42,35 @@
 | opencode 调用方式需调整（直调→serve+attach 或配置默认 server） | 高 | 开发阶段（M4）验证备选调用路径并改造 C8 OpenCodeRunner |
 | 模型推理链路在当前环境受限 | 中 | 明确 test 环境模型可达性；如受限则优先验证现有运行态 bot 的真实调用记录 |
 
-## 5. 结论与建议
+## 5. T1 spike 补充结论（2026-08-06 M4 开发阶段）
+
+### 5.1 验证结果
+
+| 项目 | 结果 | 证据 |
+|------|------|------|
+| serve+attach 调用链路 | ✅ 端到端通过 | `opencode serve`（5102）→ `opencode run --attach` → free 模型返回真实文本 |
+| free 模型推理 | ✅ 通过 | `opencode/deepseek-v4-flash-free` 返回 `"Hi! How can I help you..."`（11002 tokens） |
+| volcark/volcark2 provider | ❌ 欠费 | `AccountOverdueError`（403）——账户余额逾期，非代码问题 |
+
+### 5.2 根因定位（ARCH-DEF-001/002）
+
+- **ARCH-DEF-001（直调 Session not found）**：`opencode run` 直调内置 server 启动失败所致，正确用法为 serve 常驻 + `run --attach`，与社区指南一致
+- **ARCH-DEF-002（attach 推理 UnknownError）**：**真实根因 = 本地 opencode DB schema 半迁移**（`/Users/gogo/.local/share/opencode/opencode.db` 缺 `replacement_seq` 列，`SQLiteError`）。指向全新空库（`OPENCODE_DB`）后该错误消失，推理正常。**排除模型/provider 归属**
+
+### 5.3 C8 调用策略定案
+
+```bash
+opencode serve --port 5102 --hostname 127.0.0.1   # 常驻服务（独立 DB）
+opencode run "<msg>" --format json --model opencode/deepseek-v4-flash-free --attach http://127.0.0.1:5102 --session <sid>
+```
+
+- 模型：`opencode/deepseek-v4-flash-free`（免费可用，火山账户欠费不影响）
+- 会话：`--session <sid>` 保持连续对话
+- 数据库：独立 DB（避免全局 585MB 主库 schema 问题）
+
+## 6. 最终结论
 
 1. **架构骨架有效**：Flask 服务/健康检查/challenge/JSON 契约/环境清理均验证通过
-2. **ADR-002 需在 M4 补充 POC 迭代**：调用方式从「直调」调整为「serve+attach 或持久 server」，并验证模型推理链路的 provider 可达性
-3. **不阻断架构基线**：该发现属实现细节（OpenCodeRunner 内部），不影响组件/接口/数据/安全架构
-4. 建议在开发阶段追加 spike 验证：`opencode serve` 常驻 + `run --attach` 的真实端到端调用
+2. **C8 调用方式定案**：serve 常驻 + attach + free 模型 + 独立 DB（见 §5.3），M4 T1 已闭环
+3. **剩余风险**：volcark 火山账户欠费待充值；models.dev 拉取超时（不影响本地模型推理）
+4. **ARCH-DEF-001/002 已根因定位**，代码层面无阻塞，可实施 C8 改造
