@@ -1,0 +1,22 @@
+用例编号,功能模块,测试类型,用例类型,优先级,风险等级,测试项,前置条件,测试数据,测试步骤,预期结果,对应需求,设计方法
+TC-EVT-001,事件回调,接口自动化,正向,P1,中,challenge 校验,服务运行,challenge=test123,POST /feishu/events 发送 url_verification 请求,返回 {"challenge":"test123"},REQ-FUNC-REQ-001,契约测试
+TC-EVT-002,事件回调,接口自动化,异常,P1,中,空数据拒绝,服务运行,空 body,POST /feishu/events 发送 {},返回 400,REQ-FUNC-REQ-001,错误推测
+TC-EVT-003,事件回调,接口自动化,异常,P1,中,非事件回调跳过,服务运行,type=other,POST /feishu/events 发送非 event_callback,返回 {"status":"skip"},REQ-FUNC-REQ-001,错误推测
+TC-EVT-004,事件回调,接口自动化,异常,P1,中,非消息事件跳过,服务运行,type=event_callback+event.type=receive_v2,POST /feishu/events,返回 {"status":"skip"},REQ-FUNC-REQ-001,错误推测
+TC-EVT-005,事件回调,接口自动化,边界,P1,中,事件去重,服务运行,相同 msg_id 发两次,连续 POST 相同 message_id 两次,第一次 ok 第二次 duplicate,REQ-FUNC-REQ-001,边界值
+TC-OPC-001,消息转发,功能,SIT,正向,P0,极高,opencode 调用链路,serve 常驻+free 模型,文本消息,POST 文本事件,日志显示处理且触发推理,REQ-FUNC-REQ-002/004,场景法
+TC-OPC-002,消息转发,功能,正向,P0,极高,serve 调用命令构造,无,单测 mock,运行 TestC8RunCommand,attach+model+无skip参数,REQ-FUNC-REQ-002/004,契约测试
+TC-OPC-003,消息转发,功能,异常,P1,中,会话续接,无,sid_old,带 session_id 调用,命令含 --session sid_old,REQ-FUNC-REQ-004,边界值
+TC-INP-001,入站校验,功能,边界,P1,中,4096 边界内通过,无,4096字符,POST 4096字符消息,不触发拒绝,REQ-FUNC-REQ-012,边界值
+TC-INP-002,入站校验,功能,边界,P1,中,超4096拒绝,无,5000字符,POST 5000字符消息,日志超长拒绝,REQ-FUNC-REQ-012,边界值
+TC-INP-003,入站校验,功能,异常,P1,中,非文字消息,无,image类型,POST image 消息,只支持文字消息,REQ-FUNC-REQ-001,错误推测
+TC-TRC-001,截断保护,功能,边界,P1,中,块内截断丢弃,无,长代码块,单测 TestC9Truncate,不泄漏+保留提示,REQ-FUNC-REQ-015,边界值
+TC-TRC-002,截断保护,功能,边界,P1,中,完整块保留,无,短块+长文本,单测 TestC9Truncate,完整代码块保留,REQ-FUNC-REQ-015,边界值
+TC-TRC-003,截断保护,功能,异常,P1,中,未闭合块兜底,无,未闭合块,单测 TestC9Truncate,丢弃无泄漏,REQ-FUNC-REQ-015,错误推测
+TC-RLT-001,限流,非功能,边界,P1,中,10条内通过,无,10条请求,单测 TestC10RateLimit,全部放行,REQ-SEC-REQ-003,边界值
+TC-RLT-002,限流,非功能,边界,P1,中,第11条拒绝,无,11条请求,单测 TestC10RateLimit,第11条拒绝,REQ-SEC-REQ-003,边界值
+TC-RLT-003,限流,非功能,边界,P1,中,open_id隔离,无,两个open_id,单测 TestC10RateLimit,独立计数,REQ-SEC-REQ-003,等价类
+TC-RLT-004,限流,非功能,边界,P1,中,窗口滑动重置,无,过期记录,单测 TestC10RateLimit,窗口后恢复,REQ-SEC-REQ-003,边界值
+TC-SND-001,重试告警,功能,异常,P1,中,发送失败重试,无,失败→成功,mock requests 失败1次成功1次,重试1次+刷新token,REQ-FUNC-REQ-017,错误推测
+TC-SND-002,重试告警,功能,异常,P1,中,token连续失败告警,无,3次失败,mock requests 抛异常3次,计数3+告警日志,REQ-FUNC-REQ-018,错误推测
+TC-SND-003,重试告警,功能,正向,P1,中,token成功重置,mock,先失败后成功,单测 TestC12SendRetryTokenAlert,计数归零,REQ-FUNC-REQ-018,场景法
