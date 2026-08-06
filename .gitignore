@@ -1,0 +1,19 @@
+# 运行时
+var/
+*.log
+*.pid
+
+# 配置凭证（真实值仅保留本地，勿推送）
+config/feishu.local.yaml
+
+# 内部/依赖
+.opencode/
+node_modules/
+.uploads/
+
+# 含重写前历史的备份（含旧凭证），仅限本地
+备份/git_rewrite_*.bundle
+
+# 评审报告 xlsx（二进制交付物，按需推送）
+*.xlsx
+!SRS质量校验报告.xlsx
