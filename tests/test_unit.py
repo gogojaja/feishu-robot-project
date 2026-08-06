@@ -117,6 +117,46 @@ class TestC11InputValidation(unittest.TestCase):
         self.assertIn("只支持文字消息", msend.call_args[0][1])
 
 
+class TestC8RunCommand(unittest.TestCase):
+    """C8 opencode 调用策略：serve+attach+free 模型，无全权限参数"""
+
+    def _run_with_mock(self, bot, msg, session_id="", stdout="", returncode=0):
+        fake = MagicMock()
+        fake.stdout = stdout
+        fake.stderr = ""
+        fake.returncode = returncode
+        with patch("subprocess.run", return_value=fake) as mrun:
+            resp, sid = bot._run(msg, session_id)
+            return mrun, resp, sid
+
+    def test_command_has_attach_and_free_model(self):
+        bot = make_bot()
+        mrun, resp, _ = self._run_with_mock(
+            bot, "hi",
+            stdout=json.dumps({"type": "text", "sessionID": "sid1", "part": {"text": "ok"}}),
+        )
+        cmd = mrun.call_args[0][0]
+        self.assertIn("--attach", cmd)
+        self.assertIn("http://127.0.0.1:5102", cmd)
+        self.assertIn("--model", cmd)
+        self.assertIn("opencode/deepseek-v4-flash-free", cmd)
+        self.assertNotIn("--dangerously-skip-permissions", cmd)
+        self.assertEqual(resp, "ok")
+
+    def test_session_passed_when_exists(self):
+        bot = make_bot()
+        mrun, _, _ = self._run_with_mock(bot, "hi", session_id="sid_old")
+        cmd = mrun.call_args[0][0]
+        self.assertIn("--session", cmd)
+        self.assertIn("sid_old", cmd)
+
+    def test_json_error_tolerant(self):
+        bot = make_bot()
+        mrun, resp, sid = self._run_with_mock(bot, "hi", stdout="not-json-line\n")
+        self.assertEqual(resp, "（无输出）")
+        self.assertEqual(sid, "")
+
+
 class TestC12SendRetryTokenAlert(unittest.TestCase):
     """C12 发送失败重试 1 次 + token 连续失败≥3 告警"""
 

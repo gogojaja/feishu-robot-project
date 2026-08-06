@@ -15,6 +15,7 @@
     - 2026-08-05: C12 改造——发送失败重试 1 次 + token 连续失败≥3 告警（REQ-FUNC-REQ-017/018）
     - 2026-08-05: C10 限流 + C11 入站校验——固定窗口 10 条/分 + 4096 字符拒绝（REQ-SEC-REQ-003 / REQ-FUNC-REQ-012）
     - 2026-08-05: C9 截断代码块保护——超长输出保留完整代码块（REQ-FUNC-REQ-015）
+    - 2026-08-06: C8 调用策略落地——serve 常驻 + attach + free 模型，移除全权限直调（T1 spike 闭环）
 """
 
 import os
@@ -133,7 +134,11 @@ class FeishuBot:
         env = os.environ.copy()
         env.pop("OPENCODE_SERVER_PASSWORD", None)
         env.pop("OPENCODE_SERVER_USERNAME", None)
-        cmd = ["opencode", "run", message, "--format", "json", "--dangerously-skip-permissions"]
+        cmd = [
+            "opencode", "run", message, "--format", "json",
+            "--model", "opencode/deepseek-v4-flash-free",
+            "--attach", "http://127.0.0.1:5102",
+        ]
         if session_id:
             cmd += ["--session", session_id]
         try:
