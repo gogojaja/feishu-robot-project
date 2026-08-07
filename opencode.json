@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "skills": {
-    "paths": [".opencode/skills"]
+    "paths": ["/Volumes/BR256G/DevProjectTeamSkill/.trae/skills"]
   }
 }
