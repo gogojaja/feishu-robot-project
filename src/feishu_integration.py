@@ -241,12 +241,15 @@ class FeishuBot:
                 return jsonify({"challenge": event_data.get("challenge", "")})
 
             if event_data.get("type") != "event_callback":
-                return jsonify({"status": "skip"})
-
-            event_type = (event_data.get("event") or {}).get("type", "")
-            if event_type != "im.message.receive_v1":
-                logger.info(f"跳过事件: {event_type}")
-                return jsonify({"status": "skip"})
+                event_type = (event_data.get("header") or {}).get("event_type", "")
+                logger.info(f"收到事件: {event_type} | app_id={event_data.get('header', {}).get('app_id', '')} | open_id={(event_data.get('event', {}).get('sender', {}).get('sender_id') or {}).get('open_id', '')}")
+                if not event_type or event_type != "im.message.receive_v1":
+                    return jsonify({"status": "skip"})
+            else:
+                event_type = (event_data.get("event") or {}).get("type", "")
+                if event_type != "im.message.receive_v1":
+                    logger.info(f"跳过事件: {event_type}")
+                    return jsonify({"status": "skip"})
 
             msg_id = (event_data.get("event") or {}).get("message", {}).get("message_id", "")
             if msg_id:
@@ -371,23 +374,25 @@ def main():
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(asctime)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
     config_path = BASE_DIR / "config" / "feishu.yaml"
+    local_config_path = BASE_DIR / "config" / "feishu.local.yaml"
     app_id = os.environ.get("FEISHU_APP_ID", "")
     app_secret = os.environ.get("FEISHU_APP_SECRET", "")
     verification_token = os.environ.get("FEISHU_VERIFICATION_TOKEN", "")
     port = 5103
 
-    if config_path.exists():
-        try:
-            import yaml
-            with open(config_path) as f:
-                cfg = yaml.safe_load(f)
-            if isinstance(cfg, dict):
-                app_id = app_id or cfg.get("app_id", "")
-                app_secret = app_secret or cfg.get("app_secret", "")
-                verification_token = verification_token or cfg.get("verification_token", "")
-                port = int(cfg.get("port", port))
-        except Exception as e:
-            logger.warning(f"读取配置文件失败: {e}")
+    for cfg_path in (local_config_path, config_path):
+        if cfg_path.exists():
+            try:
+                import yaml
+                with open(cfg_path) as f:
+                    cfg = yaml.safe_load(f)
+                if isinstance(cfg, dict):
+                    app_id = app_id or cfg.get("app_id", "")
+                    app_secret = app_secret or cfg.get("app_secret", "")
+                    verification_token = verification_token or cfg.get("verification_token", "")
+                    port = int(cfg.get("port", port))
+            except Exception as e:
+                logger.warning(f"读取配置文件失败: {cfg_path}: {e}")
 
     if not app_id or not app_secret:
         logger.error("请在 config/feishu.yaml 中配置 app_id / app_secret")
