@@ -14,6 +14,9 @@ node_modules/
 # 含重写前历史的备份（含旧凭证），仅限本地
 备份/git_rewrite_*.bundle
 
+# 备份目录中的本地凭证（真实值勿推送）
+备份/*/feishu.local.yaml
+
 # 评审报告 xlsx（二进制交付物，按需推送）
 *.xlsx
 !SRS质量校验报告.xlsx
