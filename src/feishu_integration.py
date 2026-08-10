@@ -7,7 +7,7 @@
 依赖：
     - 标准库：os, sys, json, logging, subprocess, re, pathlib, threading, time
     - 第三方：requests, flask
-版本：v1.2
+版本：v1.4
 更新记录：
     - 2026-06-14: 初始创建
     - 2026-06-15: 重构为 OpenCode 桥接模式，加入会话追踪
@@ -16,6 +16,8 @@
     - 2026-08-05: C10 限流 + C11 入站校验——固定窗口 10 条/分 + 4096 字符拒绝（REQ-SEC-REQ-003 / REQ-FUNC-REQ-012）
     - 2026-08-05: C9 截断代码块保护——超长输出保留完整代码块（REQ-FUNC-REQ-015）
     - 2026-08-06: C8 调用策略落地——serve 常驻 + attach + free 模型，移除全权限直调（T1 spike 闭环）
+    - 2026-08-09: 真实消息验收通过 + 兼容 2.0 事件格式 + 本地凭证优先 + 会话落盘 + 启动预热
+    - 2026-08-11: 群聊回复支持——chat_type=group 回复到群内（chat_id），单聊回复 open_id
 """
 
 import os
@@ -52,6 +54,43 @@ class FeishuBot:
         self._rate_lock = threading.Lock()
         self.rate_limit_max = 10
         self.rate_limit_window = 60
+        self._session_file = BASE_DIR / "var" / "sessions.json"
+        self._session_lock = threading.Lock()
+        self._load_sessions()
+
+    def _load_sessions(self):
+        """从 var/sessions.json 恢复会话（重启不丢失）。"""
+        try:
+            if self._session_file.exists():
+                with open(self._session_file) as f:
+                    data = json.load(f)
+                if isinstance(data, dict):
+                    self.sessions = {str(k): str(v) for k, v in data.items()}
+                    logger.info(f"会话已恢复: {len(self.sessions)} 条")
+        except Exception as e:
+            logger.warning(f"读取会话文件失败: {e}")
+
+    def _save_sessions(self):
+        """将会话持久化到 var/sessions.json（线程安全）。"""
+        try:
+            self._session_file.parent.mkdir(parents=True, exist_ok=True)
+            with self._session_lock:
+                tmp = self._session_file.with_suffix(".tmp")
+                with open(tmp, "w") as f:
+                    json.dump(self.sessions, f, ensure_ascii=False, indent=2)
+                tmp.replace(self._session_file)
+        except Exception as e:
+            logger.warning(f"保存会话失败: {e}")
+
+    def _warmup(self):
+        """后台预热：启动后延迟等待 serve 就绪，执行一次最小推理预加载模型。"""
+        time.sleep(5)
+        try:
+            logger.info("预热：执行最小推理请求（首次冷启动可能较慢）")
+            resp, _ = self._run("你好", "", timeout=600)
+            logger.info(f"预热完成: {resp[:50]}")
+        except Exception as e:
+            logger.warning(f"预热失败（不影响服务）: {e}")
 
     def get_token(self) -> bool:
         url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
@@ -74,7 +113,8 @@ class FeishuBot:
             logger.error(f"⚠️ token 获取连续失败 ≥3 次（当前 {self._token_fail_count} 次），请检查凭证/网络")
         return False
 
-    def send(self, open_id: str, text: str):
+    def send(self, receive_id: str, text: str, receive_id_type: str = "open_id", mention_id: str = ""):
+        """发送消息。receive_id_type: open_id（单聊用户）/ chat_id（群聊）。群聊时可传 mention_id 在群内 @ 发送者。"""
         if int(time.time()) > self.token_expire_time:
             self.get_token()
         url = "https://open.feishu.cn/open-apis/im/v1/messages"
@@ -82,14 +122,16 @@ class FeishuBot:
             "Authorization": f"Bearer {self.tenant_access_token}",
             "Content-Type": "application/json"
         }
+        if receive_id_type == "chat_id" and mention_id:
+            text = f'<at user_id="{mention_id}"></at> {text}'
         body = {
-            "receive_id": open_id,
+            "receive_id": receive_id,
             "msg_type": "text",
             "content": json.dumps({"text": text})
         }
         for attempt in range(2):
             try:
-                resp = requests.post(url, headers=headers, params={"receive_id_type": "open_id"}, json=body, timeout=30)
+                resp = requests.post(url, headers=headers, params={"receive_id_type": receive_id_type}, json=body, timeout=30)
                 if resp.status_code == 200 and resp.json().get("code") == 0:
                     return True
                 logger.error(f"发送失败: {resp.text[:200]}")
@@ -130,7 +172,7 @@ class FeishuBot:
             total += len(line) + 1
         return text[:limit]
 
-    def _run(self, message: str, session_id: str = "") -> tuple[str, str]:
+    def _run(self, message: str, session_id: str = "", timeout: int = 180) -> tuple[str, str]:
         env = os.environ.copy()
         env.pop("OPENCODE_SERVER_PASSWORD", None)
         env.pop("OPENCODE_SERVER_USERNAME", None)
@@ -142,7 +184,7 @@ class FeishuBot:
         if session_id:
             cmd += ["--session", session_id]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=180, cwd=str(BASE_DIR), env=env)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=str(BASE_DIR), env=env)
             stdout = result.stdout or ""
             new_sid = session_id
             text_parts = []
@@ -192,11 +234,17 @@ class FeishuBot:
             open_id = (sender.get("sender_id") or {}).get("open_id", "")
             msg_type = message.get("message_type", "")
             content = message.get("content", "")
+            chat = message.get("chat") or {}
+            chat_id = chat.get("chat_id", "")
+            chat_type = chat.get("chat_type", "")
 
-            logger.info(f"处理: {open_id} / {msg_type}")
+            target_id = chat_id if chat_type == "group" else open_id
+            target_type = "chat_id" if chat_type == "group" else "open_id"
+            mention_id = open_id if chat_type == "group" else ""
+            logger.info(f"处理: {open_id} / {msg_type} / chat_type={chat_type}")
 
             if msg_type != "text":
-                self.send(open_id, "只支持文字消息")
+                self.send(target_id, "只支持文字消息", target_type, mention_id)
                 return
 
             try:
@@ -210,19 +258,20 @@ class FeishuBot:
 
             if len(text) > 4096:
                 logger.warning(f"入站消息超长（{len(text)} 字符）拒绝处理: {open_id}")
-                self.send(open_id, "消息过长（超过 4096 字符），请精简后重试")
+                self.send(target_id, "消息过长（超过 4096 字符），请精简后重试", target_type, mention_id)
                 return
 
             if not self._check_rate_limit(open_id):
                 logger.warning(f"触发限流（10 条/分钟）: {open_id}")
-                self.send(open_id, "消息过于频繁（限 10 条/分钟），请稍后再试")
+                self.send(target_id, "消息过于频繁（限 10 条/分钟），请稍后再试", target_type, mention_id)
                 return
 
             session_id = self.sessions.get(open_id, "")
             response, new_sid = self._run(text, session_id)
             if new_sid and new_sid != session_id:
                 self.sessions[open_id] = new_sid
-            self.send(open_id, response)
+                self._save_sessions()
+            self.send(target_id, response, target_type, mention_id)
         except Exception as e:
             logger.error(f"处理异常: {e}")
 
@@ -276,6 +325,7 @@ class FeishuBot:
             response, new_sid = self._run(msg, opencode_sid)
             if new_sid and new_sid != opencode_sid:
                 self.sessions[sid] = new_sid
+                self._save_sessions()
             return jsonify({"response": response, "session_id": sid})
 
         @app.route("/chat")
@@ -366,6 +416,7 @@ inp.focus();
         def health():
             return jsonify({"status": "ok"})
 
+        threading.Thread(target=self._warmup, daemon=True).start()
         logger.info(f"服务启动于 :{port}")
         app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
 
