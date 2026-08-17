@@ -1,0 +1,15 @@
+主机,资源类型,资源标识,环境,端口,容器名,模型名,占用项目,注册日期,状态,优先级,备注
+gogojajadeMac-mini.local,端口,5103,test,5103,-,-,feishu-robot-project,2026-08-17,已占用,高,Flask 服务(本盘KINGSTON120G)
+gogojajadeMac-mini.local,端口,5102,test,5102,-,-,feishu-robot-project,2026-08-17,已占用,高,serve/opencode 通道
+gogojajadeMac-mini.local,端口,4040,test,4040,-,-,feishu-robot-project,2026-08-17,已占用,高,ngrok 公网回调→5103
+gogojajadeMac-mini.local,端口,5101,test,5101,-,-,ai-assistant-system,2026-08-17,已占用,高,feishu-callback(BR256G真实运行实例)
+gogojajadeMac-mini.local,端口,5082,test,5082,-,-,ai-assistant-system,2026-08-17,空闲(配置预留),中,file_bot_port
+gogojajadeMac-mini.local,端口,5081,test,5081,-,-,ai-assistant-system,2026-08-17,空闲(配置预留),中,code_api_port
+gogojajadeMac-mini.local,端口,8080,test,8080,-,-,ai-assistant-system,2026-08-17,空闲(配置预留),中,llama_port
+gogojajadeMac-mini.local,端口,11434,test,11434,-,-,ai-assistant-system,2026-08-17,空闲(配置预留),中,ollama_port
+gogojajadeMac-mini.local,端口,5080,test,5080,-,-,free-api-hub,2026-08-17,空闲(已释放),低,项目已删至.Trashes，孤儿进程2026-08-17清理
+gogojajadeMac-mini.local,端口,4040,test,4040,-,-,DevProjectTeamSkill,2026-08-17,误登(已校正),低,原记DevProjectTeamSkill，实为飞书ngrok
+gogojajadeMac-mini.local,端口,11434,test,11434,-,-,DevProjectTeamSkill,2026-08-17,误登(已校正),低,原记DevProjectTeamSkill，实为ai-assistant ollama
+gogojajadeMac-mini.local,目录,DevProjectTeamSkill,test,-,-,-,DevProjectTeamSkill,2026-08-17,空闲,低,BR256G空占无端口
+gogojajadeMac-mini.local,目录,openclaw,test,-,-,-,openclaw,2026-08-17,空闲,低,KINGSTON120G空脚手架无端口
+gogojajadeMac-mini.local,目录,/Users/gogo/ai-assistant-system,test,-,-,-,ai-assistant-system,2026-08-17,待清理,中,旧副本(配置写5001/5002/5003禁用端口)非运行实例
