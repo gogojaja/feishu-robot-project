@@ -1,34 +1,36 @@
-# POC 验证计划 — 飞书机器人项目
+# POC 验证计划 — 飞书+OpenClaw+OpenCode（v0.3）
 
-> 依据：review.md 环节 2（validate_prototype）· 版本：v0.1　日期：2026-08-05
+> 依据：review.md 环节 2（validate_prototype）· 版本：v0.3　日期：2026-08-12
 
 ## 1. 目标
 
-验证架构关键假设（ADR-001~005）在 test 环境下的真实可用性，降低技术风险。
+验证 OpenClaw 路线架构关键假设（ADR-001~005）在 test 环境下的真实可用性，降低技术风险。
 
 ## 2. 验证范围与用例
 
 | # | 验证项 | 对应决策/风险 | 方法 | 通过标准 |
 |---|--------|--------------|------|----------|
-| P1 | 服务存活与健康检查 | ADR-004 / REQ-NFR-REQ-001 | curl /health | {"status":"ok"} |
-| P2 | opencode CLI 可用性 | ADR-002 / REQ-FUNC-REQ-002 | opencode --version | 版本 v1.17.4 |
-| P3 | opencode 会话连续（--session） | ADR-002 / REQ-FUNC-REQ-004 | opencode run + attach | sessionID 返回且可复用 |
-| P4 | JSON 输出格式解析 | REQ-FUNC-REQ-008 | opencode --format json | 逐行 JSON、type=text |
-| P5 | 事件回调 challenge 校验 | ADR-001 / REQ-FUNC-REQ-001 | 模拟 url_verification | challenge 原样返回 |
-| P6 | 环境变量清理 | REQ-FUNC-REQ-011 | env.pop 检查 | 无 SERVER_PASSWORD |
+| P1 | OpenClaw 版本与 Gateway 常驻 | ADR-004 / N-REQ-09 | openclaw --version + gateway status | 2026.7.1-2 + runtime running(pid 4639) |
+| P2 | feishu 渠道插件加载 | ADR-001 / N-REQ-01 | plugins list + 日志 | feishu enabled + client ready |
+| P3 | 飞书长连接建立 | ADR-001 / N-REQ-01 | 日志 websocket | ws client ready + bot open_id 解析 |
+| P4 | ACP 运行时插件 acpx | ADR-002 / N-REQ-03 | plugins list + 日志 | acpx enabled + runtime pre-warmed |
+| P5 | ACP 配置完整性 | ADR-002 / N-REQ-02 | openclaw.json 解析 | acp.enabled/agents.list/bindings 正确 |
+| P6 | ACP 会话 smoke test | ADR-002 / N-REQ-03 | openclaw acp 正确消息格式 | 会话建立并返回输出 |
+| P7 | 群绑定路由 | ADR-002 / N-REQ-02 | bindings 配置核验 | 单群 oc_7e3442d95ddf0b3c226cb528a4db2ced |
+| P8 | 凭证权限 | ADR-005 / N-REQ-10 | 权限检查 | 配置 0600 + 不入仓库 |
 
 ## 3. 资源与环境
 
-- 环境：test（.env_type=test）；端口 5103（服务）；5101（临时 serve）
-- 工具：curl、opencode CLI v1.17.4
+- 环境：test（.env_type=test）；OpenClaw 2026.7.1-2；opencode 1.17.4
+- 配置：~/.openclaw/openclaw.json
 - 约束：不修改任何存量文件；测试临时进程用后清理
 
 ## 4. 验证顺序
 
-P1 → P2 → P3/P4（核心风险）→ P5（代码评审确认）→ P6（代码评审确认）
+P1 → P2 → P3 → P4 → P5 → P6（核心风险）→ P7 → P8
 
 ## 5. 退出标准
 
-- 全部 P1-P6 执行并记录结果
-- 核心风险（opencode 调用）确认可用或记录明确限制
+- 全部 P1-P8 执行并记录结果
+- 核心风险（ACP 链路）确认可用或记录明确限制与修复路径
 - 输出 POC 验证报告.md

@@ -1,0 +1,11 @@
+﻿决策项,候选方案,评估维度,结论,依据
+事件接入方式,Webhook（Flask 回调）vs 长连接 SDK,公网可达性/成熟度/部署成本,Webhook 为主（存量），长连接 SDK 留迁移预案,飞书官方文档+社区项目验证
+Web框架,Flask（threaded）vs FastAPI/其他,存量兼容/轻量/稳定,Flask（存量代码已用）,SRS 06 设计约束
+HTTP客户端,requests vs httpx/urllib,存量兼容/成熟度,requests（存量）,存量代码
+OpenCode调用,subprocess+--session vs serve+run --attach,常驻开销/单用户场景/官方支持,subprocess+--session 为主,opencode.ai/docs/cli 官方支持 --session
+会话存储,内存 dict+threading.Lock vs Redis,隐私需求/零成本/单用户,内存 dict+Lock,REQ-DATA-REQ-001 不落盘
+消息去重,内存 set+Lock vs 持久化,幂等/隐私,内存 set+Lock,REQ-FUNC-REQ-003
+限流方案,内存固定窗口 vs 令牌桶/外部限流,单用户/实现复杂度,内存固定窗口（10条/分/open_id）,REQ-SEC-REQ-003
+配置管理,环境变量优先→YAML,规范要求,环境变量优先→config/feishu.yaml,REQ-ENV-REQ-002
+回调公网,ngrok 内网穿透 vs 公网服务器,零预算/稳定性,ngrok 本地穿透（验证用）,社区项目 clawdbot-feishu 验证
+服务端口,5103 单端口聚合,环境约束,5103 单端口聚合（webhook+api+health）,AGENTS.md 端口约束

@@ -1,0 +1,7 @@
+章节,内容
+可用性,Gateway LaunchAgent自启；openclaw gateway status可查
+可恢复性,重启自动重连WebSocket与ACP会话
+可观测性,openclaw logs关键事件留痕
+安全性,配置0600不入仓库；dmPolicy白名单；groupSessionScope会话隔离
+数据,会话持久化（接受落盘）；配置凭证受权限保护
+性能,文本应答P95≤15s（待验证）

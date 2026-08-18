@@ -1,0 +1,18 @@
+需求编号,需求描述,来源,优先级,关联功能模块,关联接口,关联数据实体,关联测试用例,关联设计文档,变更记录,追溯状态
+N-REQ-01,飞书长连接订阅,项目负责人决策,Must,OpenClaw feishu渠道,WebSocket,配置,待验证,OpenClaw官方feishu文档,新增,已追溯
+N-REQ-02,群聊ACP绑定,项目负责人决策,Must,acpx插件,ACP,会话映射,待验证,ACP agents文档,v0.2新增,已追溯
+N-REQ-03,OpenCode ACP适配,项目负责人决策,Must,acpx插件,opencode acp,会话,待验证,ACP agents文档,新增,已追溯
+N-REQ-04,群聊@触发,项目负责人决策,Must,feishu渠道,requireMention,群聊消息,待验证,OpenClaw feishu文档,新增,已追溯
+N-REQ-05,流式卡片输出,项目负责人决策,Must,feishu渠道,CardKit,卡片,待验证,OpenClaw feishu文档,新增,已追溯
+N-REQ-06,权限/提问闭环,项目负责人决策,Should,acpx插件,ACP,权限记录,待验证,ACP agents文档,新增,已追溯
+N-REQ-07,私聊白名单,项目负责人决策,Must,feishu渠道,dmPolicy,白名单,待验证,OpenClaw feishu文档,新增,已追溯
+N-REQ-08,会话持久化绑定,项目负责人决策,Should,OpenClaw会话,ACP,会话存储,待验证,Session Management,新增,已追溯
+N-REQ-09,Gateway常驻,项目负责人决策,Must,Gateway,LaunchAgent,进程,待验证,Gateway运行手册,新增,已追溯
+N-REQ-10,凭证保护,AGENTS.md合规,Must,配置管理,配置文件,配置凭证,待验证,安全配置,新增,已追溯
+N-REQ-11,日志留痕,项目负责人决策,Should,日志,openclaw logs,日志,待验证,运维手册,新增,已追溯
+N-REQ-12,模型切换,项目负责人决策,Should,OpenCode,/model,模型配置,待验证,ACP文档,新增,已追溯
+N-REQ-13,自动重连,项目负责人决策,Should,Gateway,WebSocket,连接状态,待验证,Gateway运行手册,新增,已追溯
+N-REQ-14,媒体收发,项目负责人决策,Should,feishu渠道,媒体API,媒体消息,待验证,feishu文档,新增,已追溯
+N-REQ-15,环境约束,AGENTS.md,Must,运行环境,check_env,环境,待验证,AGENTS.md,新增,已追溯
+N-REQ-16,单通道运行,项目负责人决策,Must,进程管理,端口5103,进程,待验证,决策记录,新增,已追溯
+REQ-001~029,原自研桥接需求,存量代码,移交/失效,自研桥接服务,webhook,内存态,—,v0.1文档,v0.2路线切换,已移交/已失效

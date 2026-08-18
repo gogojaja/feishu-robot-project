@@ -1,0 +1,8 @@
+需求编号,接口名称,方向,协议,说明,优先级
+N-REQ-01,飞书长连接事件,飞书→OpenClaw,WebSocket,im.message.receive_v1 事件推送,Must
+N-REQ-02,ACP会话控制,OpenClaw→OpenCode,ACP(Agent Client Protocol),bindings 路由+会话控制,Must
+N-REQ-03,OpenCode ACP server,OpenClaw→OpenCode,stdin/stdout,opencode acp 启动适配,Must
+N-REQ-05,飞书CardKit流式,OpenClaw→飞书,HTTPS卡片API,流式卡片实时更新,Must
+N-REQ-06,权限回传,OpenClaw→OpenCode,ACP,permission/question 结果回传,Should
+REQ-006,HTTP API /api/chat,外部→自研,HTTP,已失效（Gateway内部路由）,失效
+REQ-007,Gateway状态,运维→OpenClaw,CLI,openclaw gateway status,移交

@@ -1,0 +1,8 @@
+原则,检查结果,说明
+成熟性,✅ 通过,OpenClaw 2026.7.1-2 官方版本；opencode 1.17.4 官方支持 ACP
+稳定性,✅ 通过,Gateway LaunchAgent 常驻（pid 4639）；长连接免公网
+安全性,✅ 通过,凭证0600/白名单/权限确认/会话隔离/环境约束
+高效性,⚠️ 待实测,文本应答 P95≤15s（REQ-017）前置条件未就绪
+便捷性,✅ 通过,配置声明式（agents.list/bindings），openclaw logs 可查
+跨平台性,✅ 通过,macOS test 已验证；Linux 为非必要备选
+可移植性,✅ 通过,配置外部化（openclaw.json），无硬编码

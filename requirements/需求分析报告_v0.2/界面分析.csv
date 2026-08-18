@@ -1,0 +1,5 @@
+需求编号,界面项,交互方式,说明,优先级
+N-REQ-05,流式卡片,飞书卡片实时更新,推理中 Thinking/Generating/Complete 状态,Should
+N-REQ-06,权限确认卡片,飞书卡片按钮,once/always/reject 三选确认,Should
+N-REQ-12,模型切换面板,飞书命令,/model 切换模型,Should
+N-REQ-04,群聊@交互,飞书群聊,@机器人触发回复,Must

@@ -1,0 +1,9 @@
+需求编号,环境项,要求,说明,优先级
+N-REQ-15,运行环境标记,仅test（.env_type=test）,check_env.py核验,Must
+N-REQ-15,端口约束,5101/5102/5103,Gateway=18789（OpenClaw原生端口）,Must
+N-REQ-15,权限,禁止sudo、禁止/Users/gogo,AGENTS.md约束,Must
+N-REQ-09,Gateway常驻,LaunchAgent运行,openclaw gateway status running,Must
+N-REQ-01,事件订阅,长连接WebSocket,免公网IP/免ngrok,Must
+N-REQ-03,OpenCode运行,opencode CLI 1.17.4,已安装可执行,Must
+N-REQ-16,自研服务停用,5103无自研进程,避免双通道重复回复,Must
+REQ-017,可用性,OpenClaw路线重新验证,指标待验,待验证

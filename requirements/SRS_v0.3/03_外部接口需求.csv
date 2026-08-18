@@ -1,0 +1,9 @@
+接口编号,接口名称,方向,协议,触发条件,功能说明,数据要求,优先级,关联需求
+IF-001,飞书长连接事件,飞书→OpenClaw,WebSocket,应用事件推送,im.message.receive_v1 事件接收,事件体JSON；仅记元数据,Must,N-REQ-01/N-REQ-04
+IF-002,ACP会话控制,OpenClaw→OpenCode,ACP(Agent Client Protocol),bindings路由命中,会话创建/消息转发/结果回传,session_id 映射,Must,N-REQ-02
+IF-003,OpenCode ACP server,OpenClaw→OpenCode,stdin/stdout,首次spawn,opencode acp 启动与消息交换,ACP协议帧,Should,N-REQ-03
+IF-004,飞书CardKit流式,OpenClaw→飞书,HTTPS卡片API,SSE事件触发,流式卡片实时更新,卡片JSON,Should,N-REQ-05
+IF-005,权限确认回传,OpenClaw→OpenCode,ACP,permission/question卡片响应,确认结果回传任务继续,once/always/reject,Should,N-REQ-06
+IF-006,Gateway状态查询,运维→OpenClaw,CLI,手工/脚本调用,openclaw gateway status/logs,运行状态与日志,Must,N-REQ-09/N-REQ-11
+IF-007,媒体收发,飞书↔OpenClaw,WebSocket/上传API,图片/文件消息,媒体消息接收与回传,文件ID与内容,Should,N-REQ-14
+IF-008,模型切换指令,用户→OpenClaw,群聊文本,/model指令解析,切换OpenCode模型,模型名参数,Should,N-REQ-12

@@ -1,12 +1,12 @@
 ﻿项目,内容
 文档名称,软件需求规格说明书（SRS）
 项目编号,PRJ-001
-项目名称,Free API Hub 飞书机器人（feishu-robot-project）
-版本,v0.1
+项目名称,feishu-robot-project 飞书机器人（feishu-robot-project）
+版本,v0.3
 编制角色,需求分析师（DevProjectTeamSkill）
-日期,2026-08-05
-目的,定义飞书→OpenCode 桥接服务的完整需求规格，作为后续架构/开发/测试依据
-范围,存量服务功能规格化，仅维护存量功能，不新增业务功能
-定义,opencode=本机AI编程CLI；tenant_access_token=飞书租户访问令牌；open_id=飞书用户唯一标识
-参考文献,IEEE 830-1998；ISO/IEC/IEEE 29148:2018；BABOK v3；AGENTS.md
-概述,飞书用户发送消息→桥接服务转发opencode处理→回复至飞书；另提供HTTP API与健康检查
+日期,2026-08-12
+目的,定义飞书+OpenClaw+OpenCode三层架构桥接服务的完整需求规格，作为后续架构/开发/测试依据
+范围,存量服务功能规格化+OpenClaw中间层需求新增（Agent编排/Skills/多模型/MCP/Gateway）；代码暂不变更，需求先行
+定义,opencode=本机AI编程CLI；tenant_access_token=飞书租户访问令牌；open_id=飞书用户唯一标识；OpenClaw=开源AI Agent框架（原名Clawdbot）；Agent=自主规划/执行/评估的智能体；Skills=模块化能力插件；MCP=模型上下文协议；Gateway=多渠道消息路由网关
+参考文献,IEEE 830-1998；ISO/IEC/IEEE 29148:2018；BABOK v3；AGENTS.md；OpenClaw官方文档（openclaw-ai.com）
+概述,飞书用户发送消息→桥接服务→OpenClaw Gateway→Agent编排→opencode处理→回复至飞书；另提供HTTP API与健康检查

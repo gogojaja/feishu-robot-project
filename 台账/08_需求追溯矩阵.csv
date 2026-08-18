@@ -1,28 +1,17 @@
-﻿﻿需求编号,需求描述,来源,优先级,关联功能模块,关联接口,关联数据实体,关联测试用例,关联设计文档,变更记录,追溯状态
-REQ-FUNC-REQ-001,事件回调,REQ-001,Must,桥接服务,/feishu/events,内存态,待测试阶段,接口设计§2.1,无,已追溯
-REQ-FUNC-REQ-002,消息转发,REQ-002,Must,桥接服务,opencode CLI,内存态,tests/test_unit.py TestC8RunCommand,组件设计C8/ADR-002,无,已实现
-REQ-FUNC-REQ-014,回声控制,REQ-024,Must,桥接服务,飞书事件,内存态,待测试阶段,组件设计C5,无,已追溯
-REQ-FUNC-REQ-003,去重,REQ-003,Must,桥接服务,/feishu/events,内存态,待测试阶段,组件设计C7/ADR-003,无,已追溯
-REQ-FUNC-REQ-004,会话,REQ-004,Must,桥接服务,opencode CLI,内存态,tests/test_unit.py TestC8RunCommand,ADR-002/C6,无,已实现
-REQ-FUNC-REQ-005,非文字提示,REQ-005,Should,桥接服务,/feishu/events,内存态,待测试阶段,组件设计C5,无,已追溯
-REQ-FUNC-REQ-006,API,REQ-006,Should,桥接服务,/api/chat,内存态,待测试阶段,接口设计§2.2/C2,无,已追溯
-REQ-FUNC-REQ-016,Web页面,REQ-025,Could,桥接服务,/chat,内存态,待测试阶段,接口设计§2.3/C3,无,已追溯
-REQ-FUNC-REQ-007,Token,REQ-008,Must,桥接服务,飞书token API,内存态,待测试阶段,组件设计C12/ADR-005,无,已追溯
-REQ-FUNC-REQ-008,输出清理,REQ-009,Should,桥接服务,opencode CLI,内存态,待测试阶段,组件设计C9,无,已追溯
-REQ-FUNC-REQ-015,截断保留代码块,REQ-026,Should,桥接服务,opencode CLI,内存态,tests/test_unit.py TestC9Truncate,组件设计C9,无,已实现
-REQ-FUNC-REQ-010,超时,REQ-010,Must,桥接服务,opencode CLI,内存态,待测试阶段,组件设计C8/性能B4,无,已追溯
-REQ-FUNC-REQ-011,环境隔离,REQ-011,Must,桥接服务,env,内存态,待测试阶段,接口设计§3.3/C8,无,已追溯
-REQ-FUNC-REQ-012,长度校验,REQ-019,Must,桥接服务,/feishu/events,内存态,tests/test_unit.py TestC11InputValidation,组件设计C11,无,已实现
-REQ-FUNC-REQ-013,并发安全,REQ-021,Must,桥接服务,内存字典,内存态,待测试阶段,组件设计C6/ADR-003,无,已追溯
-REQ-FUNC-REQ-017,Token告警,REQ-027,Must,桥接服务,飞书token API,内存态,tests/test_unit.py TestC12SendRetryTokenAlert,组件设计C12,无,已实现
-REQ-FUNC-REQ-018,发送重试,REQ-028,Must,桥接服务,飞书消息API,内存态,tests/test_unit.py TestC12SendRetryTokenAlert,组件设计C12,无,已实现
-REQ-SEC-REQ-001,凭证保护,REQ-018,Must,桥接服务,日志/仓库,内存态,待测试阶段,ADR-005/安全架构§4,无,已追溯
-REQ-SEC-REQ-002,权限约束,REQ-014,Must,桥接服务,运行环境,内存态,待测试阶段,安全架构§6,无,已追溯
-REQ-SEC-REQ-003,限流,REQ-020,Should,桥接服务,飞书事件,内存态,tests/test_unit.py TestC10RateLimit,组件设计C10,无,已实现
-REQ-SEC-REQ-004,会话隔离,REQ-029,Must,桥接服务,内存字典,内存态,待测试阶段,C6/ADR-005,无,已追溯
-REQ-DATA-REQ-001,隐私,REQ-022,Must,桥接服务,内存态,内存态,待测试阶段,数据架构/ADR-003,无,已追溯
-REQ-ENV-REQ-001,环境约束,REQ-013,Must,桥接服务,check_env,内存态,待测试阶段,策略分析§3,无,已追溯
-REQ-ENV-REQ-002,配置,REQ-012,Must,桥接服务,config/feishu.yaml,内存态,待测试阶段,接口设计§3,无,已追溯
-REQ-NFR-REQ-001,可用性,REQ-017,Must,桥接服务,health,内存态,待测试阶段,性能基准/说明书§10,无,已追溯
-REQ-NFR-REQ-002,可观测性,REQ-023,Should,桥接服务,日志,内存态,待测试阶段,安全架构§5,无,已追溯
-REQ-IF-REQ-001,接口契约,REQ-001/006/008,—,桥接服务,/feishu/events,内存态,待测试阶段,接口设计文档,无,已追溯
+﻿需求编号,需求描述,来源,优先级,关联功能模块,关联接口,关联数据实体,关联测试用例,关联设计文档,变更记录,追溯状态
+N-REQ-01,飞书长连接（WebSocket）接收事件,项目负责人决策+OpenClaw官方文档,Must,事件订阅,飞书WebSocket(im.message.receive_v1),内存态,待测试阶段,接口设计§2.1,无,已追溯
+N-REQ-02,群聊绑定OpenCode ACP会话,项目负责人决策+OpenClaw官方文档,Must,会话路由,ACP(Agent Client Protocol),session_id映射,待测试阶段,接口设计§2.2,无,已追溯
+N-REQ-03,OpenCode ACP adapter按需拉取启动,项目负责人决策+OpenClaw官方文档,Must,ACP适配,OpenCode ACP server(stdin/stdout),ACP协议帧,待测试阶段,接口设计§2.3,无,已追溯
+N-REQ-04,requireMention=true仅@回复,项目负责人决策+OpenClaw官方文档,Must,群聊触发,飞书事件解析,内存态,待测试阶段,接口设计§2.1,无,已追溯
+N-REQ-05,流式卡片实时更新,项目负责人决策+OpenClaw官方文档,Should,流式输出,飞书CardKit(HTTPS卡片API),卡片JSON,待测试阶段,接口设计§2.4,无,已追溯
+N-REQ-06,permission/question卡片确认,项目负责人决策+OpenClaw官方文档,Should,权限闭环,ACP(permission/question),once/always/reject,待测试阶段,接口设计§2.5,无,已追溯
+N-REQ-07,dmPolicy=allowlist私聊白名单,项目负责人决策+OpenClaw官方文档,Must,私聊白名单,飞书私聊事件,白名单配置,待测试阶段,接口设计§2.1,无,已追溯
+N-REQ-08,chat↔session映射持久化,项目负责人决策+OpenClaw官方文档,Must,会话持久化,文件系统(会话存储),持久化文件,待测试阶段,接口设计§2.6,无,已追溯
+N-REQ-09,LaunchAgent+Gateway状态检查,项目负责人决策+OpenClaw官方文档,Must,Gateway常驻,openclaw CLI(status/logs),运行状态,待测试阶段,接口设计§2.7,无,已追溯
+N-REQ-10,配置0600不入仓库凭证保护,项目负责人决策+OpenClaw官方文档,Must,凭证保护,文件系统(权限),配置文件,待测试阶段,安全设计§3.1,无,已追溯
+N-REQ-11,关键事件日志留痕,项目负责人决策+OpenClaw官方文档,Should,日志留痕,openclaw CLI(logs),日志文件,待测试阶段,接口设计§2.7,无,已追溯
+N-REQ-12,切换OpenCode模型/model指令,项目负责人决策+OpenClaw官方文档,Should,模型切换,群聊文本解析,模型名参数,待测试阶段,接口设计§2.8,无,已追溯
+N-REQ-13,重启后重连飞书与OpenCode,项目负责人决策+OpenClaw官方文档,Should,自动重连,飞书WebSocket+ACP,内存态,待测试阶段,接口设计§2.1,无,已追溯
+N-REQ-14,图片/文件消息媒体收发,项目负责人决策+OpenClaw官方文档,Should,媒体收发,飞书WebSocket/上传API,文件ID与内容,待测试阶段,接口设计§2.9,无,已追溯
+N-REQ-15,test环境+端口+权限环境约束,项目负责人决策+AGENTS.md,Must,环境约束,check_env脚本,.env_type配置,待测试阶段,环境设计§4.1,无,已追溯
+N-REQ-16,自研服务停用单通道,项目负责人决策+范围约束,Must,单通道,自研webhook服务,无(停用),待测试阶段,架构决策ADR-001,无,已追溯

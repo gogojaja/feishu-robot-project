@@ -1,0 +1,13 @@
+项目,内容
+文档名称,软件需求规格说明书（SRS）
+项目编号,PRJ-001
+项目名称,feishu-robot-project 飞书机器人（feishu-robot-project）
+版本,v0.3
+编制角色,需求分析师（DevProjectTeamSkill）
+日期,2026-08-12
+目的,定义飞书→OpenClaw→OpenCode 桥接服务的需求规格，作为架构/开发/测试依据
+范围,技术路线切换：自研Python桥接（webhook+ngrok）→ OpenClaw（长连接+ACP）方案；仅test环境
+定义,OpenClaw=AI代理网关（2026.7.1-2）；OpenCode=本地AI编程CLI（v1.17.4）；ACP=Agent Client Protocol；acpx=OpenClaw ACP运行时插件；requireMention=群聊@触发开关
+参考文献,IEEE 830-1998；ISO/IEC/IEEE 29148:2018；BABOK v3；AGENTS.md；docs.openclaw.ai（feishu/ACP/配置）
+概述,飞书用户@机器人→OpenClaw feishu长连接接收→acpx绑定→OpenCode会话处理→流式卡片回传飞书
+变更记录,v0.1(2026-08-05)自研桥接；v0.2(2026-08-11)切换OpenClaw路线；v0.3(2026-08-12)补齐外部接口章节+固化评审缺陷(优先级一致性)

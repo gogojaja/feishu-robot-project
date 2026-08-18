@@ -1,0 +1,17 @@
+需求编号,功能分类,描述,输入,输出,优先级,验收标准
+N-REQ-01,事件订阅,飞书长连接（WebSocket）接收事件,飞书配置,长连接建立,Must,启动后5秒内WebSocket连接建立成功；收到飞书事件后100ms内到达本地处理；连接断开后30秒内自动重连
+N-REQ-02,会话路由,群聊绑定OpenCode ACP会话,群聊@消息,OpenCode回复回群,Must,@机器人后2秒内触发ACP会话创建；回复内容通过飞书卡片回传到群聊；同一群聊复用同一ACP会话
+N-REQ-03,ACP适配,OpenCode ACP adapter按需拉取启动,首次spawn,ACP server就绪,Must,首次spawn在10秒内完成ACP server就绪；后续请求复用已有ACP会话；ACP server异常退出后自动重启
+N-REQ-04,群聊触发,requireMention=true仅@回复,群聊消息,非@忽略,Must,@机器人消息100%触发回复；非@消息100%忽略；白名单内@消息100%回复
+N-REQ-05,流式输出,流式卡片实时更新,SSE事件,实时卡片,Should,SSE事件到达后200ms内卡片内容更新；流式更新频率≤500ms/次；卡片最终内容与OpenCode输出一致
+N-REQ-06,权限闭环,permission/question卡片确认,权限请求,确认回传任务继续,Should,权限请求到达后5秒内卡片发送；用户确认后1秒内任务继续；超时未确认自动拒绝
+N-REQ-07,私聊白名单,dmPolicy=allowlist,私聊消息,非白名单拒答,Must,白名单内用户消息100%回复；非白名单用户消息100%拒绝并提示
+N-REQ-08,会话持久化,chat↔session映射持久化,会话操作,重启恢复,Must,会话映射写入持久化存储；重启后5秒内恢复所有会话映射；持久化数据无损坏
+N-REQ-09,Gateway常驻,LaunchAgent+状态检查,运行,Gateway active,Must,系统启动后30秒内Gateway变为active状态；openclaw gateway status返回active；异常退出后60秒内自动重启
+N-REQ-10,凭证保护,配置0600不入仓库,配置,无凭证泄露,Must,配置文件权限为0600（仅owner可读写）；配置文件不被git跟踪；凭证不出现在日志中
+N-REQ-11,日志留痕,关键事件日志,运行事件,可查日志,Should,启动/连接/消息/错误事件100%记录；日志文件可按时间范围查询；日志保留≥7天
+N-REQ-12,模型切换,切换OpenCode模型,/model指令,模型生效,Should,/model指令发送后5秒内模型切换完成；切换后新模型立即可用；无效模型名返回错误提示
+N-REQ-13,自动重连,重启后重连飞书与OpenCode,重启,连接恢复,Should,服务重启后30秒内重连飞书WebSocket；重启后10秒内重连OpenCode ACP；重连后会话状态恢复
+N-REQ-14,媒体收发,图片/文件消息,媒体消息,媒体回传,Should,图片消息5秒内接收并转发；文件消息10秒内接收并转发；媒体文件大小限制≤10MB
+N-REQ-15,环境约束,test环境+端口+权限,部署,check_env通过,Must,.env_type=test且check_env通过；端口仅5101/5102/5103可用；禁止/Users/gogo路径访问
+N-REQ-16,单通道,自研服务停用,运行,无重复回复,Must,自研webhook服务未运行；无重复回复现象；仅OpenClaw长连接通道活跃

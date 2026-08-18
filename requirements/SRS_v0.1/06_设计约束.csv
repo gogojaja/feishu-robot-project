@@ -3,5 +3,5 @@ REQ-ENV-REQ-001,运行环境,仅test环境（.env_type=test）,AGENTS.md
 REQ-ENV-REQ-001,端口,限5101/5102/5103，禁止5001/5002/5003,AGENTS.md
 REQ-SEC-REQ-002,权限,禁止/Users/gogo路径与sudo,AGENTS.md
 REQ-ENV-REQ-002,配置,环境变量优先→config/feishu.yaml,存量代码
-REQ-FUNC-REQ-011,依赖,opencode CLI已装且清SERVER_PASSWORD,存量代码
+REQ-FUNC-REQ-011,依赖,opencode CLI已装且清SERVER_PASSWORD（serve+attach模式，attach至127.0.0.1:5102）,存量代码
 REQ-NFR-REQ-001,运行,Python3+Flask,存量代码

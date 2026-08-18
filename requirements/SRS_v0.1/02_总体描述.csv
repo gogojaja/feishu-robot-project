@@ -1,6 +1,6 @@
 ﻿章节,内容
 产品透视,飞书/Lark移动端或桌面端调用本机opencode进行编程开发，交互与终端一致
-功能概述,事件回调接收/消息去重/会话保持/opencode调用/输出清理/Token管理/HTTP API/健康检查/限流
+功能概述,事件回调接收/消息去重/会话保持/opencode调用(serve+attach)/输出清理/Token管理/HTTP API/健康检查/限流/群聊回复/启动预热/OpenClaw编排(Agent/Skills/多模型/MCP/Gateway)
 用户特征,单用户+AI助理模式（项目负责人段波）；消息来源为飞书用户open_id
 约束,仅test环境（.env_type=test）；端口限5101/5102/5103；禁止/Users/gogo路径；禁止sudo；Python3+opencode
 假设,无外部采购预算；测试环境端口可用；opencode CLI已安装（v1.17.4）

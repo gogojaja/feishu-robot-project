@@ -1,0 +1,40 @@
+需求清单区
+需求编号,来源载体,原子行为描述,MoSCoW,分类,验收标准,约束依据,状态
+N-REQ-01,PRJ,飞书开放平台事件订阅采用「使用长连接接收事件」（WebSocket），系统无需公网回调 URL,Must,环境,Gateway 日志出现「feishu WebSocket client started」且无 URL 验证需求,—,已确认
+N-REQ-02,PRJ,系统通过 OpenClaw acpx 将飞书群聊绑定到 OpenCode 会话（bindings type=acp），群内消息路由至 OpenCode 处理,Must,功能,群聊 @ 机器人后消息进入 OpenCode 会话且回复回群（chat_id 匹配）,—,已确认
+N-REQ-03,PRJ,OpenCode ACP adapter 首次使用可按需拉取并启动（opencode acp server 可用）,Must,功能,`opencode acp --help` 返回 ACP server 选项且可启动,—,已确认
+N-REQ-04,PRJ,群聊中机器人被 @ 时触发回复（requireMention=true）,Must,功能,群聊内非 @ 消息不回复，@ 消息 15s 内有回复,—,已确认
+N-REQ-05,PRJ,OpenClaw 飞书渠道启用流式卡片实时输出（streaming）,Should,界面,推理过程中卡片持续更新至完成态,—,已确认
+N-REQ-06,PRJ,OpenCode permission.asked/question.asked 通过飞书卡片内确认闭环（once/always/reject）,Should,功能,权限请求在飞书卡片确认后任务继续执行不卡死,—,已确认
+N-REQ-07,PRJ,私聊 dmPolicy 设 allowlist 仅允许项目负责人 open_id 访问,Must,安全,非白名单 open_id 私聊被拒且日志留痕,—,已确认
+N-REQ-08,PRJ,会话上下文按群/用户隔离并持久化，设备接力不丢失,Must,功能,重启 Gateway 后会话绑定仍生效（bindings 持久化）,—,已确认
+N-REQ-09,PRJ,Gateway 以 LaunchAgent 常驻运行并提供状态检查,Must,非功能,`openclaw gateway status` 显示 running 且开机自启,—,已确认
+N-REQ-10,PRJ,密钥配置（app_secret/gateway token）权限 0600 且不入 git 仓库,Must,安全,config 文件权限校验通过且 git status 无密钥泄露,—,已确认
+N-REQ-11,PRJ,OpenClaw 日志关键事件留痕（连接/错误/会话/绑定）,Should,非功能,`openclaw logs` 可查连接建立与错误事件,—,已确认
+N-REQ-12,PRJ,OpenCode 模型可用（opencode/deepseek-v4-flash-free 等）且可切换,Should,功能,`/model` 或 acp model 切换后生效,—,已确认
+N-REQ-13,PRJ,系统停机可恢复：重启 Gateway 后自动重连飞书 WebSocket 与 OpenCode 会话,Should,非功能,重启后日志出现 websocket client started 且绑定恢复,—,已确认
+N-REQ-14,PRJ,文本/图片/文件消息均可收发（媒体通道）,Should,功能,飞书图片与文件消息可转发与回传,—,已确认
+N-REQ-15,PRJ,测试环境约束保持（.env_type=test；端口 5101/5102/5103；禁 /Users/gogo 与 sudo）,Must,环境,check_env.py 全部通过,AGENTS.md,已确认
+N-REQ-16,PRJ,原自研 Python 桥接服务停用，避免双通道重复回复,Must,环境,5103 端口无自研进程且无重复消息,—,已确认
+REQ-001,FLOW,事件回调接收与 URL 验证（webhook 模式）——OpenClaw 路线已改用长连接，本需求失效,失效,功能,不再适用,—,已失效
+REQ-002,FLOW,文本消息转发调用 opencode——移交 OpenClaw feishu 渠道+acpx,移交,功能,由 N-REQ-02 承接,—,已移交
+REQ-005,FLOW,非文字消息提示「只支持文字消息」——OpenClaw 原生支持媒体，需求反转,失效,功能,不再适用,—,已失效
+REQ-006,FLOW,HTTP API /api/chat——OpenClaw Gateway 内部路由，不暴露,失效,接口,不再适用,—,已失效
+REQ-007,FLOW,/health 端点——以 openclaw gateway status 替代,移交,非功能,由 N-REQ-09 承接,—,已移交
+REQ-008,FLOW,tenant_access_token 获取刷新——OpenClaw 飞书插件内置,移交,功能,由 OpenClaw feishu 渠道承接,—,已移交
+REQ-010,FLOW,180s 超时保护——OpenClaw timeoutSeconds 承接,移交,非功能,由 OpenClaw 超时配置承接,—,已移交
+REQ-013,FLOW,仅 test 环境+端口 5101/5102/5103,保留,环境,由 N-REQ-15 承接,AGENTS.md,已保留
+REQ-014,FLOW,禁止 /Users/gogo 路径与 sudo,保留,安全,由 N-REQ-15 承接,AGENTS.md,已保留
+REQ-017,FLOW,可用性≥99%/P95≤15s,待验,非功能,OpenClaw 路线下重新验证指标,—,待验证
+REQ-018,FLOW,不记录/不暴露飞书应用密钥与 token,保留,安全,由 N-REQ-10 承接（含 OpenClaw 配置明文风险）,AGENTS.md,已保留
+REQ-019,FLOW,入站消息长度超 4KB 拒绝处理,保留,功能,OpenClaw textChunkLimit 承接,—,已保留
+REQ-022,FLOW,消息内容不落盘——OpenClaw 默认会话落盘,冲突,数据,接受落盘（用户决策1），见 CONF-新1,—,已消解
+REQ-029,FLOW,open_id 级会话隔离——groupSessionScope 配置承接,移交,安全,由 OpenClaw 会话隔离承接,—,已移交
+
+来源映射区
+来源编号,来源名称,来源类型,关联需求编号,收集日期
+SRC-001,存量代码 src/feishu_integration.py（自研桥接）,现有系统,REQ-001~REQ-029,2026-08-05
+SRC-002,项目负责人决策（2026-08-11 需求重分析）,业务方,N-REQ-01~16,2026-08-11
+SRC-003,"OpenClaw 官方文档（docs.openclaw.ai channels/feishu, ACP agents）",行业实践,N-REQ-02/04/05/06/07,2026-08-11
+SRC-004,"GitHub 调研（openclaw/openclaw, funenc-lab, larksuite/openclaw-lark）",行业实践,N-REQ-02/06/14,2026-08-11
+SRC-005,AGENTS.md 项目准则,技术约束,N-REQ-15,2026-08-11

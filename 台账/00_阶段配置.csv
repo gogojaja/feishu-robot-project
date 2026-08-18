@@ -1,0 +1,10 @@
+阶段编号,阶段名称,保留状态,保留原因,角色包
+0,启动,保留,启动基线与环境门禁,role-project-init
+1,需求,保留,迭代需求收敛与范围冻结,role-requirements-analysis
+2,架构,保留,关键设计校验与风险口径,role-architecture
+3,开发,保留,代码实现与联调,role-development
+4,测试,保留,回归测试与验收,role-testing
+5,投产,保留,发布评审与交付准备,role-deployment
+6,归档,保留,交接与审计归档,role-governance
+
+说明,敏捷模式启动后，仅保留本项目必要阶段角色，强制保留第0阶段与总控保障，迭代内范围冻结并遵循发布级门禁。

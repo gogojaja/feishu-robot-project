@@ -1,0 +1,5 @@
+类别,内容
+外部接口,飞书长连接（WebSocket im.message.receive_v1）；飞书CardKit卡片API；OpenCode ACP（stdin/stdout）；openclaw CLI（status/logs）
+数据要求,会话映射与历史持久化；消息内容落盘（接受）；配置凭证受权限保护
+运维,openclaw gateway status/logs/restart；openclaw pairing list/approve
+废弃接口,原/feishu/events webhook、/api/chat、/health（自研服务停用）

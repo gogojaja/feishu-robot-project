@@ -1,0 +1,6 @@
+章节,内容
+环境,仅test（.env_type=test）；端口5101/5102/5103+18789（OpenClaw）；禁止/Users/gogo与sudo
+技术栈,OpenClaw 2026.7.1-2（Node26）；opencode CLI 1.17.4；@openclaw/feishu；@openclaw/acpx
+事件方式,飞书长连接WebSocket（免公网IP/ngrok）
+运行,Gateway以LaunchAgent常驻（~/Library/LaunchAgents/ai.openclaw.gateway.plist）
+废弃,自研webhook桥接服务停用

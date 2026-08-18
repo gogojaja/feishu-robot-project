@@ -1,82 +1,47 @@
-# Free API Hub — 飞书 → OpenCode 桥接服务
+# feishu-robot-project — 飞书 → OpenClaw → OpenCode 智能助理
 
 通过飞书/Lark 移动端或桌面端调用本机 OpenCode 进行编程开发，交互方式与终端使用 OpenCode 完全一致。
 
-## 架构
+## 架构（ADR-001）
 
 ```
-飞书用户 → 飞书开放平台 → 本机 Flask 服务 → opencode run → AI 响应 → 飞书用户
+飞书用户 → 飞书开放平台 → OpenClaw Gateway(18789, feishu WebSocket 长连接) → acpx → opencode ACP → 飞书用户
 ```
 
-**单文件架构**：`src/feishu_integration.py` 包含全部逻辑，无额外组件。
+- **主链路**：OpenClaw feishu 长连接免公网/免 ngrok
+- **状态**：自研 Flask Webhook + ngrok 链路已按 ADR-001 **彻底废弃移除**（2026-08-18），仅保留在 `备份/废弃_webhook桥_20260818/`
 
-## 安装
+## 环境检查
 
 ```bash
-pip install -r requirements.txt
+python3 scripts/check_env.py
 ```
 
-## 配置
+- 验证 `.env_type` 为 `test`
+- 验证废弃链路无残留（废弃代码文件 / 5102/5103 端口 / ngrok 进程）
+- 验证 OpenClaw Gateway 18789 监听与 feishu 长连接渠道 running
 
-### 1. 飞书应用配置
+## OpenClaw 配置
 
-在 `config/feishu.yaml` 中填写飞书应用凭证：
-
-```yaml
-app_id = "cli_xxx"
-app_secret = "xxx"
-verification_token = "xxx"
-```
-
-### 2. 飞书开放平台配置
-
-- 创建应用并启用机器人能力
-- 事件回调 URL: `http://公网IP或内网穿透地址:5103/feishu/events`
-- 权限: `im:message`, `im:message:send_as_bot`
-
-### 3. 网络配置（内网穿透）
-
-飞书需要公网可访问的回调地址。推荐使用：
-- [frp](https://github.com/fatedier/frp)
-- [ngrok](https://ngrok.com)
-- [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
-
-## 启动
-
-```bash
-bash scripts/start-feishu.sh
-```
-
-## 验证
-
-```bash
-curl http://127.0.0.1:5103/health
-python3 scripts/test_feishu.py
-```
-
-## 停止
-
-```bash
-bash scripts/stop-feishu.sh
-```
+配置位于 `~/.openclaw/openclaw.json`（appId / appSecret / feishu accounts 等），涉及网关配置变更先备份再改，可用 `scripts/openclaw-gate-check.sh` 完成备份-校验-重启-验证四步。
 
 ## 使用方式
 
-在飞书中向机器人发送任意文字消息，OpenCode 会处理并返回结果，与终端使用体验一致。
+在飞书中向机器人发送任意文字消息，OpenClaw → opencode ACP 处理并返回结果，与终端使用体验一致。
+
+## 停止/重启网关（必要时）
+
+```bash
+launchctl kickstart -k gui/$(id -u)/ai.openclaw.gateway   # 重启
+openclaw channels status                                  # 验证 feishu 渠道
+```
 
 ## 文件说明
 
 | 文件 | 作用 |
 |------|------|
-| `src/feishu_integration.py` | 核心服务，接收飞书消息并转发给 OpenCode |
-| `scripts/start-feishu.sh` | 启动脚本 |
-| `scripts/stop-feishu.sh` | 停止脚本 |
-| `scripts/test_feishu.py` | 测试脚本 |
-| `scripts/check_env.py` | 环境检查 |
-| `config/feishu.yaml` | 飞书应用配置 |
+| `scripts/check_env.py` | 环境检查（含废弃链路残留阻断） |
+| `scripts/openclaw-gate-check.sh` | OpenClaw 网关配置变更门禁（备份/校验/重启/验证） |
+| `scripts/pre-commit-env-gate.sh` | git pre-commit 门禁（端口台账冲突 + 废弃链路引用阻断） |
 | `AGENTS.md` | 项目沟通准则 |
-
-## 已知问题
-
-- `opencode run` 需清除 `OPENCODE_SERVER_PASSWORD` 环境变量（已在代码中自动处理）
-- 飞书回调地址需公网可达
+| `架构事实基线.md` | 架构与环境事实权威基线 |

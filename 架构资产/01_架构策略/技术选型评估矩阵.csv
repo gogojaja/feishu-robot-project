@@ -1,11 +1,13 @@
-﻿决策项,候选方案,评估维度,结论,依据
-事件接入方式,Webhook（Flask 回调）vs 长连接 SDK,公网可达性/成熟度/部署成本,Webhook 为主（存量），长连接 SDK 留迁移预案,飞书官方文档+社区项目验证
-Web框架,Flask（threaded）vs FastAPI/其他,存量兼容/轻量/稳定,Flask（存量代码已用）,SRS 06 设计约束
-HTTP客户端,requests vs httpx/urllib,存量兼容/成熟度,requests（存量）,存量代码
-OpenCode调用,subprocess+--session vs serve+run --attach,常驻开销/单用户场景/官方支持,subprocess+--session 为主,opencode.ai/docs/cli 官方支持 --session
-会话存储,内存 dict+threading.Lock vs Redis,隐私需求/零成本/单用户,内存 dict+Lock,REQ-DATA-REQ-001 不落盘
-消息去重,内存 set+Lock vs 持久化,幂等/隐私,内存 set+Lock,REQ-FUNC-REQ-003
-限流方案,内存固定窗口 vs 令牌桶/外部限流,单用户/实现复杂度,内存固定窗口（10条/分/open_id）,REQ-SEC-REQ-003
-配置管理,环境变量优先→YAML,规范要求,环境变量优先→config/feishu.yaml,REQ-ENV-REQ-002
-回调公网,ngrok 内网穿透 vs 公网服务器,零预算/稳定性,ngrok 本地穿透（验证用）,社区项目 clawdbot-feishu 验证
-服务端口,5103 单端口聚合,环境约束,5103 单端口聚合（webhook+api+health）,AGENTS.md 端口约束
+﻿决策项,候选方案,评估维度,结论,依据,优先级
+事件接入方式,自研Webhook(Flask+ngrok) vs OpenClaw长连接(WebSocket),公网可达性/免公网/官方支持/双通道风险,OpenClaw 长连接（官方@openclaw/feishu），免公网IP/ngrok,N-REQ-01/方案A已确认,Must
+机器人中间层,自研Python桥接 vs OpenClaw Gateway,官方路线/编排能力/维护成本,OpenClaw Gateway（含Agent编排/Skills/多模型/MCP/ACP）,用户原始设想+GitHub调研+CHG-REQ-001,Must
+OpenCode调用,subprocess+--session vs OpenCode ACP adapter,官方协议/会话复用/状态管理,ACP adapter（acpx插件，mode=persistent）,N-REQ-03/opencode 1.17.4原生支持,Must
+群聊绑定,自研路由 vs OpenClaw bindings,配置化/声明式,OpenClaw bindings（group绑定oc_7e3442d95ddf0b3c226cb528a4db2ced）,N-REQ-02/已实测配置生效,Must
+会话存储,内存dict+Lock vs OpenClaw持久化映射,重启恢复/设备接力,OpenClaw session持久化（chat↔session映射落盘）,N-REQ-08（决策已反转）,,Must
+触发方式,全部消息 vs requireMention,群聊@体验,requireMention=true（仅@触发）,N-REQ-04,Must
+凭证管理,源码明文 vs 配置0600+不入仓库,安全基线,~/.openclaw/openclaw.json 权限0600+不入仓库,N-REQ-10,Must
+私聊策略,全放行 vs dmPolicy=allowlist,安全/白名单,dmPolicy=allowlist,N-REQ-07,Must
+进程管理,手动nohup vs LaunchAgent常驻,开机自启/状态可查,LaunchAgent（ai.openclaw.gateway.plist）,N-REQ-09,Must
+回复模式,一次性文本 vs 流式卡片,体验/实时性,CardKit流式卡片（SSE）,N-REQ-05,Should
+权限审批,自动执行 vs permission/question确认,安全,权限确认卡片（once/always/reject）,N-REQ-06,Should
+废弃通道,自研webhook vs 无,双通道重复回复,自研服务停用（feishu_integration.py）,N-REQ-16,Must

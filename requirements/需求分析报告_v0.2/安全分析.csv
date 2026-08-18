@@ -1,0 +1,9 @@
+需求编号,威胁类型,风险描述,影响,控制措施,优先级
+N-REQ-07,越权访问,非授权用户私聊机器人,资源滥用/信息泄露,dmPolicy=allowlist 白名单,Must
+N-REQ-10,凭证泄露,app_secret/gateway token 明文入配置,凭证泄露,配置文件0600+不入git仓库,Must
+N-REQ-10,配置暴露,OpenClaw 配置含明文 secret,凭证明文存储,权限加固+目录白名单,Must
+N-REQ-06,权限滥用,OpenCode 工具权限无确认执行,越权操作,permission 卡片闭环确认,Should
+REQ-018,信息泄露,app_secret/token 写入日志,凭证泄露,OpenClaw 日志脱敏+不入仓库,Must
+REQ-014,权限提升,操作/Users/gogo 或 sudo,越权,AGENTS.md 约束校验,Must
+REQ-022,信息泄露,消息内容落盘（OpenClaw 默认）,隐私风险,接受落盘但会话隔离+白名单访问,Must
+REQ-029,会话串访,跨用户/跨群会话串访,上下文泄露,groupSessionScope 隔离,Must

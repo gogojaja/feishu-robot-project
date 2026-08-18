@@ -1,17 +1,16 @@
 ﻿需求编号,质量属性,场景,量化指标,当前达成方式,验证标准,优先级
-REQ-NFR-REQ-001,可用性,单机服务持续存活,可用性>=99%（进程存活/重启率）,Flask 常驻+health 检查,月度存活统计,Must
-REQ-NFR-REQ-001,性能,文本应答延迟,应答 P95<=15s,opencode run 子进程调用,抽样计时,Must
-REQ-FUNC-REQ-010,可靠性,异常兜底,180s 强制终止,subprocess timeout=180,超时用例,Must
-REQ-FUNC-REQ-013,可靠性,并发会话安全,并发读写不冲突,threading.Lock 保护 sessions,并发测试,Must
-REQ-FUNC-REQ-003,可靠性,重复消息幂等,重复 message_id 跳过,_processed_ids set+Lock,重复用例,Must
-REQ-NFR-REQ-002,可维护性,关键事件日志留痕,token/失败/超时/限流留痕,logging 关键点埋点,日志检查,Should
-REQ-SEC-REQ-001,安全性,凭证不泄露,无 app_secret/token 外泄,凭证仅内存态+不写日志,日志/仓库扫描,Must
-REQ-SEC-REQ-002,安全性,路径/权限约束,拒绝 /Users/gogo 与 sudo,环境约束+代码规范,越权用例,Must
-REQ-SEC-REQ-003,安全性,防滥用限流,固定窗口10条/分钟/open_id,内存计数窗口,压测用例,Should
-REQ-SEC-REQ-004,安全性,会话隔离,open_id 级不串访,按 open_id 键控 sessions,跨用户用例,Must
-REQ-FUNC-REQ-008,易用性,输出无乱码,无 ANSI 转义残留,regex 清理_strip,输出检查,Must
-REQ-FUNC-REQ-015,易用性,长输出截断,<=15000字且保留完整代码块,截断+代码块保护,长输出用例,Should
-REQ-DATA-REQ-001,隐私,消息不落盘,内容仅内存态,仅内存态不写磁盘,磁盘扫描,Must
-REQ-FUNC-REQ-004,功能性,会话上下文连续,按 open_id 跨消息连续,opencode --session 复用,连续对话用例,Must
-REQ-FUNC-REQ-001,功能性,事件回调验证,challenge 1秒内原样返回,Flask url_verification 路由,URL 验证用例,Must
-REQ-FUNC-REQ-007,功能性,token 获取与刷新,过期自动刷新+失败重试,get_token 过期检测,断网用例,Must
+N-REQ-09,可用性,Gateway持续存活,可用性>=99%（单机存活口径）,LaunchAgent常驻+openclaw gateway status,月度存活统计,Must
+N-REQ-02,性能,文本应答延迟,文本应答P95<=15s,OpenClaw→ACP→OpenCode链路,抽样计时,待验证
+N-REQ-03,性能,首次ACP启动,首次spawn可用,acpx按需拉取启动,首次spawn不超时,Should
+N-REQ-08,可恢复性,重启恢复,重启后chat↔session映射恢复,OpenClaw会话持久化,重启后会话延续,Must
+N-REQ-13,可恢复性,自动重连,断连后自动恢复,OpenClaw WebSocket自动重连,断网恢复用例,Should
+N-REQ-11,可维护性,关键事件日志,事件/错误留痕,openclaw logs,日志检查,Should
+N-REQ-10,安全性,凭证不泄露,无凭证外泄/无0B0权限偏差,配置0600+不入仓库,仓库扫描+权限检查,Must
+N-REQ-07,安全性,私聊白名单,非白名单拒答,allowlist,跨用户用例,Must
+N-REQ-06,安全性,权限确认,高危操作需确认,permission卡片,权限用例,Should
+N-REQ-08,数据,会话持久化,会话不丢失,chat↔session映射落盘,重启恢复用例,Must
+N-REQ-14,功能性,媒体收发,图片/文件可收发,飞书媒体API,媒体用例,Should
+N-REQ-12,功能性,模型切换,可切换OpenCode模型,/model指令,切换生效用例,Should
+N-REQ-16,功能性,单通道,无重复回复,自研服务停用,双通道用例,Must
+N-REQ-04,功能性,群聊@触发,非@不回复,requireMention=true,@触发用例,Must
+N-REQ-05,易用性,流式反馈,卡片实时更新,CardKit流式,SSE实时性用例,Should

@@ -1,2 +1,4 @@
 ﻿操作ID,操作描述,高危级别,影响评估,审批人,回滚方案,操作日期,状态,基线版本
 OP-001,创建台账目录及 17 个 CSV 基线,低,新增文件不影响现有运行,段波,删除台账目录即可回滚,2026-08-05,已留痕,v0.2
+OP-002,强制本地读取全局最新技能库 v21.5.5:opencode.json skills.paths 改指全局;.opencode/skills 改名 skills_v2100.bak,中,影响 opencode 技能加载需重启生效;项目内旧版 v21.0.0 停用,段波,opencode.json 还原 .backup/opencode.json_20260815_195126.bak + skills_v2100.bak 改名回 skills,2026-08-15,已留痕,v21.5.5
+OP-003,CMDB 环境冲突消解:ai-assistant-system file_bot_port 5102→5082(settings+5脚本+回调代理);CMDB 补登 5102/5103→feishu-robot-project、5101/5080→ai-assistant-system、5080→free-api-hub;释放旧记录 id5/6,高,跨项目文件修改 6 处+CMDB 数据库变更;5102 冲突解除,ai-assistant 文件机器人可正常启动;CMDB CLI --force 走 INSERT 致重复记录(缺陷已知),段波,ai-assistant 文件改回 5102(env_backups/settings.yaml_20260816_051020.bak 等 6 备份)+CMDB release 新登记,2026-08-16,已留痕,v21.5.6

@@ -1,0 +1,8 @@
+章节,内容
+产品透视,飞书/Lark移动端或桌面端@机器人，通过OpenClaw网关调度本地OpenCode执行编程任务，流式卡片实时反馈
+功能概述,长连接订阅/群聊ACP绑定/@触发/流式卡片/权限确认/会话持久化/白名单/模型切换/媒体收发
+用户特征,单用户+AI助理模式（项目负责人段波）；私聊白名单=allowlist；群聊@触发
+约束,仅test环境（.env_type=test）；端口5101/5102/5103（自研）+18789（OpenClaw原生）；禁止/Users/gogo；禁止sudo；Node22+/opencode CLI已装
+假设,OpenClaw 2026.7.1-2已装；opencode 1.17.4已装；飞书app已发布；OpenCode ACP adapter可按需拉取
+依赖,OpenClaw（含@openclaw/feishu、@openclaw/acpx）；opencode CLI；飞书开放平台；LaunchAgent
+已废弃,自研src/feishu_integration.py webhook桥接服务停用（避免双通道重复回复）

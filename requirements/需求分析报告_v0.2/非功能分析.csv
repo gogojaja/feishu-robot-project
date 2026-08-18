@@ -1,0 +1,7 @@
+需求编号,质量特征,指标要求,验收标准,优先级
+N-REQ-09,可用性,Gateway 常驻,openclaw gateway status=active,Must
+N-REQ-13,可恢复性,重启自动重连,重启后 websocket client started+绑定恢复,Should
+N-REQ-11,可观测性,关键事件留痕,openclaw logs 可查连接/错误/绑定,Should
+REQ-017,可用性,可用性≥99%、文本应答P95≤15s,OpenClaw路线下重新抽样验证,待验证
+REQ-010,可靠性,超时保护,OpenClaw timeoutSeconds 承接,移交
+REQ-007,健康检查,Gateway状态检查,openclaw gateway status 替代 /health,移交

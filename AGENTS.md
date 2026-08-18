@@ -1,4 +1,4 @@
-# Free API Hub — 沟通与任务处理准则
+# feishu-robot-project — 沟通与任务处理准则
 
 > 全局准则：与 DevProjectTeamSkill（.opencode/skills/）重复的规则由技能包承载，本文件仅保留项目特有约束与补充细则。
 > 编号说明：前 11 条保持原编号（铁律引用稳定），后续章节因删除重复项顺延。
@@ -13,6 +13,13 @@
 
 ### 3. 环境验证优先
 - 会话启动切专家模式；输出规避晦涩术语，操作复制即可运行
+- **排查前置「环境事实校准」五步（M4 固化，2026-08-18）**：任何功能排查/调试前必须依次执行，禁止跳过：
+  1. **读 ADR**：读 `架构资产/03_架构决策/ADR/` 确认既定架构决策（勿凭交接文档叙述判断架构方向）
+  2. **查本机工具**：`command -v openclaw / ngrok / docker` 等核实已装工具与配置（`~/.openclaw/openclaw.json`）
+  3. **查服务端口**：`lsof -ti:<port>`（主链路 18789；废弃 5102/5103 出现即告警）确认实际监听
+  4. **查日志/状态**：`openclaw gateway status`、`openclaw channels status`、tail 对应日志定位真实故障
+  5. **《架构事实基线.md》同步**：实际运行态与文档冲突时，**以实际运行为准**，并在 `架构事实基线.md` 登记偏差，禁止反向迁就文档
+- **事实 > 文档铁律**：交接文档/台账/README 可能过时；当与环境实测矛盾，一律以实测为准并立即标注文档偏差（本次事故根因即文档写"webhook 为正式实现"而 OpenClaw 才是既定主链路）
 
 ## 文件操作铁律
 
@@ -34,7 +41,7 @@
 
 ### 8. 环境隔离（任何操作前执行）
 1. **路径**：workspace 固定 `/Volumes/KINGSTON120G/feishu-robot-project`；禁 `/Users/gogo/` 与 `~/` 路径
-2. **端口**：仅 5101/5102/5103；禁 5001/5002/5003；`lsof -ti:` 仅限 510x
+2. **端口**：主链路 18789（OpenClaw Gateway）；废弃 5102/5103 一经出现即告警（webhook 桥已彻底废弃）；禁 5001/5002/5003；`lsof -ti:` 仅限 18789/510x
 3. **标记**：修改文件前运行 `python3 scripts/check_env.py`，`.env_type` 须为 `test`，不匹配立即终止
 4. **Bash**：用 `workdir` 指向项目根；禁 `cd /Users/gogo/`；禁 kill 非本环境进程
 
@@ -109,6 +116,7 @@
 ### 22. 持续积累
 1. **功能边界清晰化**：实验性/废弃代码完全隔离，不接入生产路由；删除废弃模块前先检查所有 `from xxx import` 引用；未实现路由返回明确「开发中」提示
 2. **清理策略文档化**：大型清理操作在设计文档记录变更；清理前先做环境备份；磁盘释放数据附备注便于核对
+3. **废弃清理铁律（2026-08-18 固化）**：功能一旦被 ADR 判定废弃，必须**物理移除+文档收敛+门禁防复活**三件套闭环：① 代码/脚本/配置移出 git 主树并归档 `备份/废弃_*_日期/`；② README/交接文档/运维手册/架构事实基线同步收敛，禁止残留"过渡/遗留"叙述；③ `scripts/check_env.py`（废弃残留检测）与 `scripts/pre-commit-env-gate.sh`（废弃模式阻断）双门禁拦截，任何 reintroduce 即盲区红灯
 
 ## 回复格式
 
@@ -124,23 +132,25 @@
 
 ### 25. 常用命令
 ```bash
-python3 scripts/check_env.py     # 检查环境
-bash scripts/start-feishu.sh     # 启动服务
-bash scripts/stop-feishu.sh      # 停止服务
-python3 scripts/test_feishu.py   # 运行测试
-curl http://127.0.0.1:5103/health  # 检查状态
+python3 scripts/check_env.py           # 检查环境（含废弃残留阻断）
+openclaw channels status               # OpenClaw feishu 渠道状态
+openclaw gateway status                # Gateway 状态
+bash scripts/openclaw-gate-check.sh    # 网关配置变更门禁（备份/校验/重启/验证）
+bash scripts/check_env_resource.sh <type> <id> [project]  # 环境资源注册门禁
+bash scripts/setup-hooks.sh            # 安装 pre-commit 钩子（一键）
 ```
 
 ### 26. 文件关系
-- `src/feishu_integration.py` 核心实现 · `config/feishu.yaml` 配置 · `scripts/` 脚本集 · `.env_type` 环境标记 · `README.md` 文档
+- 主链路：OpenClaw Gateway（`~/.openclaw/openclaw.json`）→ acpx → opencode ACP；本项目脚本集：`scripts/`（check_env / openclaw-gate-check / pre-commit-env-gate）· `.env_type` 环境标记 · `README.md` / `架构事实基线.md` / `交接文档.md` 文档
+- 废弃 webhook 桥：已移出主树，归档 `备份/废弃_webhook桥_20260818/`
 
 ### 27. 常见问题
 - 环境验证失败 → `python3 scripts/check_env.py`
-- 端口被占用 → 释放 5103
-- 模块导入失败 → 确认在项目根运行
-- 功能异常 → 检查 `feishu_bot.log`
+- feishu 渠道非 running → `openclaw channels status` + `openclaw logs`；`~/.openclaw/openclaw.json` 校验 appId/appSecret
+- 废弃端口 5102/5103 出现 → 废弃桥复活，kill 进程并查 reintroduce 来源
+- Gateway 未监听 18789 → `launchctl list | grep ai.openclaw.gateway`；kickstart 重启
 
 ---
 
-*本文件由 Free API Hub 项目自动生成，持续更新中*
-*版本：v1.1 | 更新日期：2026-08-05*
+*本文件由 feishu-robot-project 项目自动生成，持续更新中*
+*版本：v1.2 | 更新日期：2026-08-18*

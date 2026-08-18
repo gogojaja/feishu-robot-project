@@ -115,13 +115,7 @@ class FeishuBot:
 
     def send(self, receive_id: str, text: str, receive_id_type: str = "open_id", mention_id: str = ""):
         """发送消息。receive_id_type: open_id（单聊用户）/ chat_id（群聊）。群聊时可传 mention_id 在群内 @ 发送者。"""
-        if int(time.time()) > self.token_expire_time:
-            self.get_token()
         url = "https://open.feishu.cn/open-apis/im/v1/messages"
-        headers = {
-            "Authorization": f"Bearer {self.tenant_access_token}",
-            "Content-Type": "application/json"
-        }
         if receive_id_type == "chat_id" and mention_id:
             text = f'<at user_id="{mention_id}"></at> {text}'
         body = {
@@ -131,6 +125,12 @@ class FeishuBot:
         }
         for attempt in range(2):
             try:
+                if int(time.time()) > self.token_expire_time or not self.tenant_access_token:
+                    self.get_token()
+                headers = {
+                    "Authorization": f"Bearer {self.tenant_access_token}",
+                    "Content-Type": "application/json"
+                }
                 resp = requests.post(url, headers=headers, params={"receive_id_type": receive_id_type}, json=body, timeout=30)
                 if resp.status_code == 200 and resp.json().get("code") == 0:
                     return True
@@ -234,9 +234,8 @@ class FeishuBot:
             open_id = (sender.get("sender_id") or {}).get("open_id", "")
             msg_type = message.get("message_type", "")
             content = message.get("content", "")
-            chat = message.get("chat") or {}
-            chat_id = chat.get("chat_id", "")
-            chat_type = chat.get("chat_type", "")
+            chat_id = message.get("chat_id", "")
+            chat_type = message.get("chat_type", "")
 
             target_id = chat_id if chat_type == "group" else open_id
             target_type = "chat_id" if chat_type == "group" else "open_id"
@@ -285,6 +284,7 @@ class FeishuBot:
             event_data = request.get_json()
             if not event_data:
                 return jsonify({"error": "no data"}), 400
+            logger.info(f"原始事件: {json.dumps(event_data, ensure_ascii=False)[:800]}")
 
             if event_data.get("type") == "url_verification":
                 return jsonify({"challenge": event_data.get("challenge", "")})

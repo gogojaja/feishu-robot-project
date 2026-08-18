@@ -1,0 +1,17 @@
+需求编号,功能分类,描述,输入,输出,优先级
+N-REQ-01,事件订阅,飞书长连接（WebSocket）接收事件,飞书配置,长连接建立,Must
+N-REQ-02,会话路由,群聊绑定OpenCode ACP会话,群聊@消息,OpenCode回复回群,Must
+N-REQ-03,ACP适配,OpenCode ACP adapter按需拉取启动,首次spawn,ACP server就绪,Must
+N-REQ-04,群聊触发,requireMention=true仅@回复,群聊消息,非@忽略,Must
+N-REQ-05,流式输出,流式卡片实时更新,SSE事件,实时卡片,Should
+N-REQ-06,权限闭环,permission/question卡片确认,权限请求,确认回传任务继续,Should
+N-REQ-07,私聊白名单,dmPolicy=allowlist,私聊消息,非白名单拒答,Must
+N-REQ-08,会话持久化,chat↔session映射持久化,会话操作,重启恢复,Must
+N-REQ-09,Gateway常驻,LaunchAgent+状态检查,运行,Gateway active,Must
+N-REQ-10,凭证保护,配置0600不入仓库,配置,无凭证泄露,Must
+N-REQ-11,日志留痕,关键事件日志,运行事件,可查日志,Should
+N-REQ-12,模型切换,切换OpenCode模型,/model指令,模型生效,Should
+N-REQ-13,自动重连,重启后重连飞书与OpenCode,重启,连接恢复,Should
+N-REQ-14,媒体收发,图片/文件消息,媒体消息,媒体回传,Should
+N-REQ-15,环境约束,test环境+端口+权限,部署,check_env通过,Must
+N-REQ-16,单通道,自研服务停用,运行,无重复回复,Must

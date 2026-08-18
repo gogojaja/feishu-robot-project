@@ -1,6 +1,7 @@
-# ADR-002 OpenCode 调用方式：subprocess + --session 会话复用
+# ADR-002 OpenCode 调用方式：subprocess + --session 会话复用（已废弃）
 
-> 状态：已接受　类型：技术选型　日期：2026-08-05
+> 状态：已废弃（由 ADR-002-OpenCode集成方式.md 取代）　类型：技术选型　日期：2026-08-05
+> 废弃原因：2026-08-12 架构重置，OpenCode 集成改由 OpenClaw ACP adapter（acpx）承载
 > 架构阶段：环节 3（record_decisions）
 
 ## 背景

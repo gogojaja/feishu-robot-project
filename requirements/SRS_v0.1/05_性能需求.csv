@@ -5,3 +5,4 @@ REQ-FUNC-REQ-010,超时阈值,180s强制终止,超时用例,Must
 REQ-FUNC-REQ-012,入站长度上限,超过4KB（4096字符）拒绝,边界用例,Must
 REQ-FUNC-REQ-015,输出截断,≤15000字且保留完整代码块,长输出用例,Should
 REQ-SEC-REQ-003,限流阈值,固定窗口10条/分钟/open_id,压测用例,Should
+REQ-NFR-REQ-003,预热延迟,启动后5s执行最小推理请求,启动日志,Should

@@ -1,0 +1,15 @@
+需求编号,功能名称,输入,处理逻辑,输出,优先级,依赖,分类
+N-REQ-01,飞书长连接订阅,飞书开放平台配置,事件订阅方式=使用长连接接收事件,WebSocket 连接建立,Must,飞书开放平台,功能
+N-REQ-02,群聊ACP绑定,飞书群聊@消息,OpenClaw bindings 路由至 opencode-acp 会话,OpenCode 回复回群（chat_id 匹配）,Must,acpx插件/opencode,功能
+N-REQ-03,OpenCode ACP适配,首次spawn请求,acpx 按需拉取 opencode adapter 并启动,ACP server 就绪, Must,opencode CLI,功能
+N-REQ-04,群聊@触发,群聊消息,requireMention=true 仅@机器人时回复,忽略非@消息,Must,N-REQ-02,功能
+N-REQ-05,流式卡片输出,OpenCode SSE事件,流式卡片分页更新至完成态,实时卡片,Must,飞书CardKit,功能
+N-REQ-06,权限/提问闭环,OpenCode permission.asked/question.asked,飞书卡片确认 once/always/reject 并回传,任务继续执行,Should,N-REQ-02,功能
+N-REQ-07,私聊白名单,私聊消息,dmPolicy=allowlist 仅项目负责人,非白名单拒答,Must,飞书渠道,功能
+N-REQ-08,会话持久化绑定,群/用户消息,chat↔session 映射持久化,重启后绑定恢复,Must,N-REQ-02,功能
+N-REQ-12,模型切换,/model 或 acp model 指令,切换 OpenCode 模型,新模型生效,Should,N-REQ-02,功能
+N-REQ-14,媒体收发,图片/文件消息,飞书媒体通道转发,媒体消息回传,Should,飞书渠道,功能
+REQ-001,事件回调webhook,飞书POST事件,已停用（长连接替代）,不再适用,失效,—,功能
+REQ-002,文本转发opencode,飞书文本,移交OpenClaw渠道+acpx,由N-REQ-02承接,移交,N-REQ-02,功能
+REQ-008,Token获取刷新,app_id/app_secret,OpenClaw飞书插件内置,自动管理token,移交,飞书渠道,功能
+REQ-019,长度校验,入站长消息,OpenClaw textChunkLimit 分块,超长拒绝/分块,保留,飞书渠道,功能

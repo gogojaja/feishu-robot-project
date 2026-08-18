@@ -1,0 +1,5 @@
+需求编号,性能项,指标,验收标准,优先级
+REQ-017,可用性,≥99%（单机存活口径）,月度可用性统计达标,待验证
+REQ-017,响应时间,文本应答P95≤15s,OpenClaw路线下抽样达标,待验证
+N-REQ-09,Gateway可用,Gateway运行,status=active,Must
+N-REQ-03,启动延迟,首次ACP拉取可用,首次spawn不超时,Should

@@ -1,0 +1,170 @@
+开发追溯矩阵
+
+项目：feishu-robot-project — 飞书 → OpenCode 桥接服务
+开发工程师角色：开发工程师（v21.0.0）
+分析日期：2026-08-12
+报告版本：v1.0.0
+
+---
+
+## 1. 开发追溯矩阵
+
+### 1.1 需求 → 模块 → 文件 → 函数 → 测试用例 → 覆盖率
+
+| 需求编号 | 模块 | 文件 | 函数 | 测试用例 | 覆盖率 |
+|----------|------|------|------|----------|--------|
+| **REQ-FUNC-001** | FeishuBot 类 | feishu_integration.py | get_token() | TC-001 | 待测试 |
+| **REQ-FUNC-001** | FeishuBot 类 | feishu_integration.py | send() | TC-003 | 待测试 |
+| **REQ-FUNC-002** | FeishuBot 类 | feishu_integration.py | _process() | TC-010 | 待测试 |
+| **REQ-FUNC-003** | FeishuBot 类 | feishu_integration.py | _run() | TC-005 | 待测试 |
+| **REQ-FUNC-004** | FeishuBot 类 | feishu_integration.py | _check_rate_limit() | TC-005 | 待测试 |
+| **REQ-FUNC-005** | FeishuBot 类 | feishu_integration.py | _load_sessions() | TC-007 | 待测试 |
+| **REQ-FUNC-006** | FeishuBot 类 | feishu_integration.py | _save_sessions() | TC-008 | 待测试 |
+| **REQ-FUNC-007** | FeishuBot 类 | feishu_integration.py | _warmup() | - | 待测试 |
+| **REQ-FUNC-008** | API 路由 | feishu_integration.py | webhook() | IC-001 | 待测试 |
+| **REQ-FUNC-009** | API 路由 | feishu_integration.py | api_chat() | IC-002 | 待测试 |
+| **REQ-FUNC-010** | API 路由 | feishu_integration.py | health() | IC-003 | 待测试 |
+| **REQ-FUNC-011** | Web 页面 | feishu_integration.py | chat_page() | - | 待测试 |
+| **REQ-FUNC-012** | 配置管理 | feishu_integration.py | main() | - | 待测试 |
+
+---
+
+### 1.2 模块 → 文件 → 函数 → 测试用例 → 覆盖率
+
+| 模块 | 文件 | 函数 | 测试用例 | 覆盖率 |
+|------|------|------|----------|--------|
+| **FeishuBot 类** | feishu_integration.py | get_token() | TC-001 | 待测试 |
+| **FeishuBot 类** | feishu_integration.py | send() | TC-003 | 待测试 |
+| **FeishuBot 类** | feishu_integration.py | _process() | TC-010 | 待测试 |
+| **FeishuBot 类** | feishu_integration.py | _run() | TC-005 | 待测试 |
+| **FeishuBot 类** | feishu_integration.py | _check_rate_limit() | TC-005 | 待测试 |
+| **FeishuBot 类** | feishu_integration.py | _load_sessions() | TC-007 | 待测试 |
+| **FeishuBot 类** | feishu_integration.py | _save_sessions() | TC-008 | 待测试 |
+| **FeishuBot 类** | feishu_integration.py | _warmup() | - | 待测试 |
+| **API 路由** | feishu_integration.py | webhook() | IC-001 | 待测试 |
+| **API 路由** | feishu_integration.py | api_chat() | IC-002 | 待测试 |
+| **API 路由** | feishu_integration.py | health() | IC-003 | 待测试 |
+| **Web 页面** | feishu_integration.py | chat_page() | - | 待测试 |
+| **配置管理** | feishu_integration.py | main() | - | 待测试 |
+
+---
+
+### 1.3 文件 → 函数 → 测试用例 → 覆盖率
+
+| 文件 | 函数 | 测试用例 | 覆盖率 |
+|------|------|----------|--------|
+| **feishu_integration.py** | get_token() | TC-001 | 待测试 |
+| **feishu_integration.py** | send() | TC-003 | 待测试 |
+| **feishu_integration.py** | _process() | TC-010 | 待测试 |
+| **feishu_integration.py** | _run() | TC-005 | 待测试 |
+| **feishu_integration.py** | _check_rate_limit() | TC-005 | 待测试 |
+| **feishu_integration.py** | _load_sessions() | TC-007 | 待测试 |
+| **feishu_integration.py** | _save_sessions() | TC-008 | 待测试 |
+| **feishu_integration.py** | _warmup() | - | 待测试 |
+| **feishu_integration.py** | webhook() | IC-001 | 待测试 |
+| **feishu_integration.py** | api_chat() | IC-002 | 待测试 |
+| **feishu_integration.py** | health() | IC-003 | 待测试 |
+| **feishu_integration.py** | chat_page() | - | 待测试 |
+| **feishu_integration.py** | main() | - | 待测试 |
+
+---
+
+### 1.4 函数 → 测试用例 → 覆盖率
+
+| 函数 | 测试用例 | 覆盖率 |
+|------|----------|--------|
+| **get_token()** | TC-001 | 待测试 |
+| **send()** | TC-003 | 待测试 |
+| **_process()** | TC-010 | 待测试 |
+| **_run()** | TC-005 | 待测试 |
+| **_check_rate_limit()** | TC-005 | 待测试 |
+| **_load_sessions()** | TC-007 | 待测试 |
+| **_save_sessions()** | TC-008 | 待测试 |
+| **_warmup()** | - | 待测试 |
+| **webhook()** | IC-001 | 待测试 |
+| **api_chat()** | IC-002 | 待测试 |
+| **health()** | IC-003 | 待测试 |
+| **chat_page()** | - | 待测试 |
+| **main()** | - | 待测试 |
+
+---
+
+## 2. 追溯矩阵统计
+
+### 2.1 追溯关系统计
+
+| 追溯关系 | 数量 |
+|----------|------|
+| **需求 → 模块** | 13 |
+| **模块 → 文件** | 13 |
+| **文件 → 函数** | 13 |
+| **函数 → 测试用例** | 12 |
+| **总计** | **51** |
+
+---
+
+### 2.2 追溯完整性
+
+| 追溯关系 | 完整性 | 说明 |
+|----------|--------|------|
+| **需求 → 模块** | ⏳ 待测试 | 待测试 |
+| **模块 → 文件** | ⏳ 待测试 | 待测试 |
+| **文件 → 函数** | ⏳ 待测试 | 待测试 |
+| **函数 → 测试用例** | ⏳ 待测试 | 待测试 |
+
+---
+
+## 3. 追溯矩阵用途
+
+### 3.1 需求追溯
+
+- **需求 → 模块**：追溯需求如何转化为模块
+- **模块 → 文件**：追溯模块如何实现为文件
+- **文件 → 函数**：追溯文件如何实现为函数
+- **函数 → 测试用例**：追溯函数如何被测试
+
+---
+
+### 3.2 代码追溯
+
+- **函数 → 测试用例**：追溯函数如何被测试
+- **函数 → 覆盖率**：追溯函数的覆盖率
+
+---
+
+### 3.3 追溯完整性检查
+
+| 检查项 | 检查结果 | 说明 |
+|--------|----------|------|
+| **需求 → 模块** | ⏳ 待测试 | 待测试 |
+| **模块 → 文件** | ⏳ 待测试 | 待测试 |
+| **文件 → 函数** | ⏳ 待测试 | 待测试 |
+| **函数 → 测试用例** | ⏳ 待测试 | 待测试 |
+| **函数 → 覆盖率** | ⏳ 待测试 | 待测试 |
+
+---
+
+## 4. 追溯矩阵总结
+
+### 4.1 追溯矩阵统计
+
+| 统计项 | 数量 |
+|--------|------|
+| **追溯关系** | 51 |
+| **需求编号** | 13 |
+| **模块数** | 13 |
+| **文件数** | 1 |
+| **函数数** | 13 |
+| **测试用例数** | 12 |
+
+---
+
+### 4.2 追溯矩阵结论
+
+✅ **追溯矩阵已建立，待测试完善**
+
+---
+
+**报告版本**：v1.0.0
+**最后更新**：2026-08-12
+**知识产权所有**：段波（验证邮箱：duanbo.douglas@163.com）

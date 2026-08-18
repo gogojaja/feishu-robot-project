@@ -1,0 +1,6 @@
+需求编号,数据实体,属性,来源,流向,存储,生命周期,质量要求
+N-REQ-08,会话映射,chat_id↔session_id,运行期,OpenClaw,持久化文件,长期保存,一致性
+N-REQ-08,会话历史,对话消息记录,飞书入站/OpenCode出站,OpenClaw会话存储,持久化,长期保存,可恢复
+REQ-022,消息内容,消息文本,飞书入站,OpenCode处理,持久化（接受落盘）,随会话保留,隐私受白名单管控
+N-REQ-10,配置凭证,app_secret/gateway token,配置注入,OpenClaw读取,文件存储,长期,权限0600
+REQ-003,消息去重,message_id集合,运行期,OpenClaw内置,内存态,去重后保留,幂等

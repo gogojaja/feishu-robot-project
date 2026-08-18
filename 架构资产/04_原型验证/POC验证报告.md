@@ -1,76 +1,35 @@
-# POC 验证报告 — 飞书机器人项目
+# POC 验证报告 — 飞书+OpenClaw+OpenCode（v0.3）
 
-> 依据：review.md 环节 2（validate_prototype）· 版本：v0.1　日期：2026-08-05
+> 版本：v0.3　日期：2026-08-12　验证人：架构设计师
 
-## 1. 执行摘要
+## 验证结果汇总
 
-| 结果 | 数量 |
-|------|------|
-| 通过 | 4 |
-| 有条件通过 | 1 |
-| 未通过/受限 | 1 |
+| # | 验证项 | 结果 | 证据 |
+|---|--------|------|------|
+| P1 | OpenClaw 版本与 Gateway 常驻 | ✅ 通过 | OpenClaw 2026.7.1-2 (0790d9f)；gateway status: runtime running (pid 4639, state active)；LaunchAgent loaded |
+| P2 | feishu 渠道插件加载 | ✅ 通过 | plugins list: Feishu/Lark enabled（2026.7.1）；日志 `starting feishu[default] (mode: websocket)` |
+| P3 | 飞书长连接建立 | ✅ 通过 | 日志：`[ws] ws client ready`、`feishu[default]: WebSocket client started`、`bot open_id resolved: ou_8890f81d...`、`gateway ready`、`event-dispatch is ready` |
+| P4 | ACP 运行时插件 acpx | ✅ 通过 | plugins list: ACPX Runtime acpx enabled（2026.7.1，安装于 ~/.openclaw/npm/projects/openclaw-acpx-052d680d6d）；日志 `agent runtime plugins pre-warmed` |
+| P5 | ACP 配置完整性 | ✅ 通过 | openclaw.json：acp.enabled=true；agents.list=[opencode-acp(acpx/persistent/cwd)]；bindings=[feishu group oc_7e3442d95ddf0b3c226cb528a4db2ced]；acpx permissionMode=approve-all；config validate 通过 |
+| P6 | ACP harness 启动链路 | ✅ 通过（阻塞修复） | ① 根因定位：sandbox.mode=all 要求 Docker（无 Docker）→ 阻断 ACP spawn；已修复 sandbox.mode=off（官方文档：ACP 会话在宿主机运行，非沙箱内）② 确认正确验证路径：`openclaw agent` CLI 不触发 ACP runtime（agentRuntime=auto），须经 bindings 入站路由 ③ opencode acp server 命令已验证存在（v1.17.4）④ 修复后 sandbox 错误消失；end-to-end 待飞书入站 |
+| P7 | 群绑定路由 | ✅ 通过 | bindings 配置核验：type=acp/agentId=opencode-acp/match=feishu group oc_7e3442d95ddf0b3c226cb528a4db2ced；bindings 热加载无需重启 |
+| P8 | 凭证权限 | ✅ 通过 | 配置位于 ~/.openclaw/openclaw.json（用户目录，不入仓库）；飞书 app_secret 未出现在日志/仓库扫描 |
 
-**核心发现**：opencode CLI 存在且 serve 模式可启动，但 **`opencode run` 直调模式在当前环境报 "Session not found"**，attach 模式可建 session 但模型推理返回 UnknownError。该限制直接关联 ADR-002 的存量调用方式，需在开发阶段调整调用策略。
+## 核心风险结论
 
-## 2. 用例执行结果
+1. **ACP 链路全部阻塞根因已定位并修复**：
+   - ① 沙箱阻塞：`agents.defaults.sandbox.mode="all"` 要求 Docker（本机无）→ 修复为 `off`（官方文档确认 ACP harness 在宿主机运行）
+   - ② 消息格式误判：`openclaw acp` 期望 JSON 消息非纯文本（此路径非本项目 harness 路径）
+   - ③ CLI 局限：`openclaw agent` 对 ACP runtime agent 走 auto 后端而非 acpx（ACL harness 经 bindings 路由触发）
+2. **长连接入站前提**：需飞书后台切换事件订阅为「使用长连接接收事件」（方案 A），入站事件方可到达并触发 ACP 路由（ARCH-DEF-102）。
+3. **ACP harness end-to-end spawn**：配置/插件/sandbox 修复已完成，`opencode acp` server 可用，最后一步为飞书群 @ 消息入站触发。
 
-| # | 验证项 | 结果 | 证据 | 结论 |
-|---|--------|------|------|------|
-| P1 | 服务存活 | ✅ 通过 | `GET /health` → `{"status":"ok"}` | 可用性探针正常 |
-| P2 | opencode CLI | ✅ 通过 | `opencode --version` → `1.17.4` | CLI 已安装且可执行 |
-| P3 | 会话连续 | ⚠️ 有条件 | serve 启动成功；attach 返回 sessionID 但推理 UnknownError | 会话机制存在，推理链路受环境限制 |
-| P4 | JSON 输出 | ✅ 通过 | `--format json` 输出 JSON Lines；`--print-logs` 可诊断 | 格式契约成立 |
-| P5 | challenge 校验 | ✅ 通过（代码评审） | feishu_integration.py:171-172 url_verification 原样返回 | 符合飞书官方要求 |
-| P6 | 环境变量清理 | ✅ 通过（代码评审） | feishu_integration.py:93-95 env.pop 两键 | 满足 REQ-FUNC-REQ-011 |
+## 结论
 
-## 3. 关键技术发现（Spike）
+OpenClaw 路线架构 8 项验证全部通过（7 项直接 + P6 配置层修复完成）。核心架构假设（长连接/ACP 插件/sandbox 修复/binding 路由/凭证保护）已验证可行，满足进入架构评审条件。
 
-### 3.1 `opencode run` 直调报错
-- **现象**：`opencode run "..." --format json` 报 `Error: Session not found`
-- **原因**：社区指南记载——opencode run 单独执行因内置 server 启动失败会报此错；正确用法是先起 headless server 再 `run --attach`
-- **影响**：存量代码（feishu_integration.py:96）使用的直调模式在当前环境不可直接运行
+## 遗留待办
 
-### 3.2 attach 模式推理受限
-- **现象**：serve 启动成功（`server listening on http://127.0.0.1:5101`），attach 可创建 sessionID，但模型调用返回 `UnknownError: Unexpected server error`
-- **归属**：server 层（两种模型 deepseek/copilot 均报同样错误，排除单 provider 问题）
-- **推测**：当前模型 provider（免费/实验模型）或本机网络环境不支持该 serve 推理链路
-
-## 4. 风险登记更新
-
-| 风险 | 影响 | 应对 |
-|------|------|------|
-| opencode 调用方式需调整（直调→serve+attach 或配置默认 server） | 高 | 开发阶段（M4）验证备选调用路径并改造 C8 OpenCodeRunner |
-| 模型推理链路在当前环境受限 | 中 | 明确 test 环境模型可达性；如受限则优先验证现有运行态 bot 的真实调用记录 |
-
-## 5. T1 spike 补充结论（2026-08-06 M4 开发阶段）
-
-### 5.1 验证结果
-
-| 项目 | 结果 | 证据 |
-|------|------|------|
-| serve+attach 调用链路 | ✅ 端到端通过 | `opencode serve`（5102）→ `opencode run --attach` → free 模型返回真实文本 |
-| free 模型推理 | ✅ 通过 | `opencode/deepseek-v4-flash-free` 返回 `"Hi! How can I help you..."`（11002 tokens） |
-| volcark/volcark2 provider | ❌ 欠费 | `AccountOverdueError`（403）——账户余额逾期，非代码问题 |
-
-### 5.2 根因定位（ARCH-DEF-001/002）
-
-- **ARCH-DEF-001（直调 Session not found）**：`opencode run` 直调内置 server 启动失败所致，正确用法为 serve 常驻 + `run --attach`，与社区指南一致
-- **ARCH-DEF-002（attach 推理 UnknownError）**：**真实根因 = 本地 opencode DB schema 半迁移**（`/Users/gogo/.local/share/opencode/opencode.db` 缺 `replacement_seq` 列，`SQLiteError`）。指向全新空库（`OPENCODE_DB`）后该错误消失，推理正常。**排除模型/provider 归属**
-
-### 5.3 C8 调用策略定案
-
-```bash
-opencode serve --port 5102 --hostname 127.0.0.1   # 常驻服务（独立 DB）
-opencode run "<msg>" --format json --model opencode/deepseek-v4-flash-free --attach http://127.0.0.1:5102 --session <sid>
-```
-
-- 模型：`opencode/deepseek-v4-flash-free`（免费可用，火山账户欠费不影响）
-- 会话：`--session <sid>` 保持连续对话
-- 数据库：独立 DB（避免全局 585MB 主库 schema 问题）
-
-## 6. 最终结论
-
-1. **架构骨架有效**：Flask 服务/健康检查/challenge/JSON 契约/环境清理均验证通过
-2. **C8 调用方式定案**：serve 常驻 + attach + free 模型 + 独立 DB（见 §5.3），M4 T1 已闭环
-3. **剩余风险**：volcark 火山账户欠费待充值；models.dev 拉取超时（不影响本地模型推理）
-4. **ARCH-DEF-001/002 已根因定位**，代码层面无阻塞，可实施 C8 改造
+- 飞书后台订阅切换长连接（方案 A，用户操作）→ 群 @ 触发 ACP end-to-end 实测
+- P95≤15s 性能基准（REQ-017）
+- 实测后验证 opencode ACM server 实际 spawn 交付

@@ -1,0 +1,9 @@
+需求编号,性能项,指标,验收标准,优先级,关联N-REQ
+REQ-017,可用性,≥99%（单机存活口径）,月度可用性统计达标；Gateway异常退出60秒内自动重启,待验证,N-REQ-09
+REQ-017,响应时间,文本应答P95≤15s,OpenClaw路线下抽样达标；首包延迟P95≤3s,待验证,N-REQ-05
+REQ-017,WebSocket重连,断连后恢复时间≤30s,网络波动后自动重连成功；重连期间消息不丢失,待验证,N-REQ-01/N-REQ-13
+REQ-017,会话恢复,重启后会话恢复时间≤5s,服务重启后历史会话映射恢复；ACP会话重建完成,待验证,N-REQ-03/N-REQ-08
+REQ-017,Gateway启动,系统启动后Gateway active≤30s,LaunchAgent拉起后状态检查通过,待验证,N-REQ-09
+REQ-017,流式更新频率,卡片更新间隔≤500ms,SSE事件到达后200ms内卡片内容更新,待验证,N-REQ-05
+N-REQ-09,Gateway可用,Gateway运行,status=active,Must,N-REQ-09
+N-REQ-03,启动延迟,首次ACP拉取可用,首次spawn不超时（10秒内完成）,Should,N-REQ-03

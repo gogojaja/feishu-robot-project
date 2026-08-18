@@ -6,3 +6,4 @@ REQ-SEC-REQ-001,安全性,凭证不泄露,日志扫描,Must
 REQ-SEC-REQ-002,安全性,路径/权限约束,越权用例,Must
 REQ-FUNC-REQ-008,易用性,输出无ANSI乱码,输出检查,Must
 REQ-DATA-REQ-001,隐私,消息不落盘,磁盘扫描,Must
+REQ-NFR-REQ-003,性能,启动预热避免冷启动延迟,启动日志检查,Should

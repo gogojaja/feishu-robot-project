@@ -1,0 +1,381 @@
+部署设计
+
+项目：feishu-robot-project — 飞书 → OpenCode 桥接服务
+架构师角色：架构师（v21.0.0）
+分析日期：2026-08-12
+报告版本：v1.0.0
+
+---
+
+## 1. 部署设计概述
+
+### 1.1 部署设计项
+
+| 设计项 | 内容 |
+|--------|------|
+| **部署拓扑** | 物理/虚拟节点映射、网络分区 |
+| **平台抽象** | 平台差异抽象层、容器化（Docker/K8s） |
+| **配置外部化** | 环境配置外置化、12-Factor 适配 |
+| **无状态化** | 无状态设计、会话外置、标准化接口 |
+| **可移植性** | 部署环境切换成本、数据可迁移 |
+
+---
+
+## 2. 部署拓扑
+
+### 2.1 物理部署拓扑
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   飞书客户端                                │
+│  (移动端 / 桌面端 / Web)                                     │
+└────────────────────┬────────────────────────────────────────┘
+                     │ HTTPS
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│              飞书开放平台 (Lark Open Platform)                │
+│  - 事件回调 (Webhook)                                        │
+│  - 消息推送                                                  │
+└────────────────────┬────────────────────────────────────────┘
+                     │ HTTPS (Webhook)
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│              负载均衡器 (可选)                               │
+│  - Nginx / HAProxy                                          │
+│  - SSL 终结                                                   │
+└────────────┬────────────────────────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Flask 服务实例 (1+)                             │
+│  - FeishuBot 类                                             │
+│  - Flask 服务 (Port 5103)                                   │
+└────────────┬────────────────────────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────────────────────────────────┐
+│              OpenCode Server (1+)                            │
+│  - opencode run (Port 5102)                                 │
+│  - 模型推理                                                  │
+│  - 会话管理                                                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 虚拟部署拓扑
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   飞书客户端                                │
+└────────────────────┬────────────────────────────────────────┘
+                     │ HTTPS
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│              飞书开放平台                                    │
+└────────────────────┬────────────────────────────────────────┘
+                     │ HTTPS (Webhook)
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│              负载均衡器 (可选)                               │
+└────────────┬────────────────────────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Kubernetes 集群                                 │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │  Flask 服务 Pod (1+)                                  │ │
+│  │  - 负责消息处理与 OpenCode 调用                        │ │
+│  │  - 资源：CPU 1核 / 内存 512MB                         │ │
+│  └───────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────┐ │
+│  │  OpenCode 服务 Pod (1+)                               │ │
+│  │  - 负责模型推理                                        │ │
+│  │  - 资源：CPU 4核 / 内存 8GB                           │ │
+│  └───────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 2.3 网络分区
+
+| 分区 | 端口 | 协议 | 用途 |
+|------|------|------|------|
+| **Flask 服务** | 5103 | HTTP | 接收飞书 Webhook、提供 REST API |
+| **OpenCode Server** | 5102 | HTTP | 提供 OpenCode 推理服务 |
+| **健康检查** | 5103 | HTTP | 健康检查端点 |
+
+---
+
+## 3. 平台抽象
+
+### 3.1 平台差异抽象
+
+| 平台 | 差异 | 抽象方案 |
+|------|------|----------|
+| **Linux** | 路径分隔符、文件系统 | 使用 `pathlib` |
+| **Windows** | 路径分隔符、文件系统 | 使用 `pathlib` |
+| **macOS** | 路径分隔符、文件系统 | 使用 `pathlib` |
+| **Docker** | 容器化、网络 | 使用 Docker 网络 |
+
+### 3.2 抽象层设计
+
+```python
+# 使用 pathlib 抽象平台差异
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+SESSION_FILE = BASE_DIR / "var" / "sessions.json"
+```
+
+---
+
+## 4. 容器化
+
+### 4.1 Docker 容器
+
+#### Dockerfile
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/feishu_integration.py .
+
+EXPOSE 5103
+
+CMD ["python", "feishu_integration.py"]
+```
+
+#### docker-compose.yml
+
+```yaml
+version: '3.8'
+
+services:
+  feishu-bot:
+    build: .
+    ports:
+      - "5103:5103"
+    environment:
+      - FEISHU_APP_ID=${FEISHU_APP_ID}
+      - FEISHU_APP_SECRET=${FEISHU_APP_SECRET}
+      - FEISHU_VERIFICATION_TOKEN=${FEISHU_VERIFICATION_TOKEN}
+    volumes:
+      - ./var:/app/var
+    depends_on:
+      - opencode-server
+
+  opencode-server:
+    image: opencode/server:latest
+    ports:
+      - "5102:5102"
+    environment:
+      - OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD}
+    resources:
+      limits:
+        cpus: '4'
+        memory: 8G
+```
+
+### 4.2 Kubernetes 部署
+
+#### Deployment
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feishu-bot
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: feishu-bot
+  template:
+    metadata:
+      labels:
+        app: feishu-bot
+    spec:
+      containers:
+      - name: feishu-bot
+        image: feishu-bot:latest
+        ports:
+        - containerPort: 5103
+        env:
+        - name: FEISHU_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: feishu-secret
+              key: app-id
+        - name: FEISHU_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: feishu-secret
+              key: app-secret
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        volumeMounts:
+        - name: var
+          mountPath: /app/var
+      volumes:
+      - name: var
+        persistentVolumeClaim:
+          claimName: feishu-bot-pvc
+```
+
+#### Service
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: feishu-bot
+spec:
+  selector:
+    app: feishu-bot
+  ports:
+  - port: 5103
+    targetPort: 5103
+  type: ClusterIP
+```
+
+#### Ingress
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: feishu-bot
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: feishu-bot.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: feishu-bot
+            port:
+              number: 5103
+```
+
+---
+
+## 5. 配置外部化
+
+### 5.1 配置文件优先级
+
+| 优先级 | 配置文件 | 说明 |
+|--------|----------|------|
+| **1** | `config/feishu.local.yaml` | 本地配置（不提交到 Git） |
+| **2** | `config/feishu.yaml` | 默认配置 |
+| **3** | 环境变量 | 环境变量（最高优先级） |
+
+### 5.2 配置文件示例
+
+#### feishu.yaml
+
+```yaml
+app_id: "cli_xxx"
+app_secret: "your_app_secret_here"
+verification_token: ""
+
+host: "0.0.0.0"
+port: 5103
+```
+
+#### feishu.local.yaml
+
+```yaml
+app_id: "cli_local_xxx"
+app_secret: "local_app_secret_here"
+verification_token: "local_verification_token"
+
+host: "0.0.0.0"
+port: 5103
+```
+
+### 5.3 12-Factor 适配
+
+| 12-Factor 原则 | 适配方案 |
+|----------------|----------|
+| **配置外部化** | 配置文件 + 环境变量 |
+| **日志输出** | 标准输出（stdout） |
+| **进程模型** | 单进程（Flask） |
+| **依赖外部化** | requirements.txt |
+| **无状态进程** | 会话落盘（var/sessions.json） |
+
+---
+
+## 6. 无状态化
+
+### 6.1 会话管理
+
+| 设计项 | 说明 |
+|--------|------|
+| **会话存储** | 文件系统（var/sessions.json） |
+| **会话同步** | 定期同步到所有实例（可选） |
+| **会话失效** | 24 小时无活动自动失效 |
+
+### 6.2 状态管理
+
+| 状态类型 | 存储方式 | 说明 |
+|----------|----------|------|
+| **会话状态** | 文件系统 | var/sessions.json |
+| **消息去重** | 内存 | _processed_ids（重启丢失） |
+| **限流记录** | 内存 | _rate_limits（重启丢失） |
+| **Token 状态** | 内存 | tenant_access_token + token_expire_time |
+
+---
+
+## 7. 可移植性
+
+### 7.1 部署环境切换
+
+| 环境 | 部署方式 | 切换成本 |
+|------|----------|----------|
+| **本地开发** | 直接运行 Python 脚本 | < 1 小时 |
+| **Docker** | Docker Compose | < 1 小时 |
+| **Kubernetes** | Helm Chart | < 1 天 |
+| **云服务** | Docker / K8s | < 1 天 |
+
+### 7.2 数据迁移
+
+| 数据类型 | 迁移方式 | 说明 |
+|----------|----------|------|
+| **会话数据** | 文件备份 | var/sessions.json |
+| **配置数据** | 配置文件 | config/feishu.yaml |
+| **日志数据** | 日志文件 | logs/ |
+
+---
+
+## 8. 部署设计总结
+
+### 8.1 部署方式
+
+| 部署方式 | 说明 | 适用场景 |
+|----------|------|----------|
+| **本地运行** | 直接运行 Python 脚本 | 本地开发、测试 |
+| **Docker** | Docker Compose | 单机部署、开发环境 |
+| **Kubernetes** | K8s Deployment + Service + Ingress | 生产环境、高可用 |
+
+### 8.2 部署原则
+
+✅ **容器化部署**
+✅ **配置外部化**
+✅ **无状态化设计**
+✅ **可移植性强**
+✅ **支持水平扩展**
+
+---
+
+**报告版本**：v1.0.0
+**最后更新**：2026-08-12
+**知识产权所有**：段波（验证邮箱：duanbo.douglas@163.com）

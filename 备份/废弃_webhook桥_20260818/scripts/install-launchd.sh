@@ -13,11 +13,11 @@ install() {
     bash "$PROJ/scripts/stop-feishu.sh" || true
     for label in "${LABELS[@]}"; do
         cp "$PROJ/scripts/launchd/$label.plist" "$LA/"
-        launchctl unload "$LA/$label.plist" 2>/dev/null || true
-        launchctl load "$LA/$label.plist"
+        launchctl bootout "gui/$(id -u)" "$LA/$label.plist" 2>/dev/null || true
+        launchctl bootstrap "gui/$(id -u)" "$LA/$label.plist"
         echo "  ✅ $label 已加载"
     done
-    sleep 3
+    sleep 5
     echo "  健康检查:"
     curl -s -o /dev/null -w "  /health -> %{http_code}\n" http://127.0.0.1:5103/health || echo "  ⚠️ 健康检查失败"
 }
@@ -25,7 +25,7 @@ install() {
 uninstall() {
     echo "== 卸载 launchd 守护 =="
     for label in "${LABELS[@]}"; do
-        launchctl unload "$LA/$label.plist" 2>/dev/null || true
+        launchctl bootout "gui/$(id -u)" "$LA/$label.plist" 2>/dev/null || true
         rm -f "$LA/$label.plist"
         echo "  ✅ $label 已卸载"
     done
