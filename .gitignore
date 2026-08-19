@@ -20,3 +20,7 @@ node_modules/
 # 评审报告 xlsx（二进制交付物，按需推送）
 *.xlsx
 !SRS质量校验报告.xlsx
+
+# Python 缓存
+__pycache__/
+*.pyc
