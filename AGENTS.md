@@ -1,6 +1,6 @@
 # feishu-robot-project — 沟通与任务处理准则
 
-> 全局准则：与 DevProjectTeamSkill（.opencode/skills/）重复的规则由技能包承载，本文件仅保留项目特有约束与补充细则。
+> 全局准则：与 DevProjectTeamSkill（全局 `/Users/gogo/.config/opencode/skills/`，本项目不保留副本）重复的规则由技能包承载，本文件仅保留项目特有约束与补充细则。
 > 编号说明：前 11 条保持原编号（铁律引用稳定），后续章节因删除重复项顺延。
 
 ## 核心原则
