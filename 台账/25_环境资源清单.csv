@@ -13,3 +13,5 @@ gogojajadeMac-mini.local,端口,11434,test,11434,-,-,DevProjectTeamSkill,2026-08
 gogojajadeMac-mini.local,目录,DevProjectTeamSkill,test,-,-,-,DevProjectTeamSkill,2026-08-17,空闲,低,BR256G空占无端口
 gogojajadeMac-mini.local,目录,openclaw,test,-,-,-,openclaw,2026-08-17,空闲,低,KINGSTON120G空脚手架无端口
 gogojajadeMac-mini.local,目录,/Users/gogo/ai-assistant-system,test,-,-,-,ai-assistant-system,2026-08-17,待清理,中,旧副本(配置写5001/5002/5003禁用端口)非运行实例
+gogojajadeMac-mini.local,端口,18800,prod,18800,-,-,feishu-robot-project,2026-08-20,已占用,高,OpenClaw prod profile Gateway(复用飞书应用cli_aa82c1b457b89bc3,已启动running/connected)
+gogojajadeMac-mini.local,目录,/Users/gogo/feishu-robot-project,prod,-,-,-,feishu-robot-project,2026-08-20,已占用,高,生产环境全新搭建(~/.openclaw-prod profile,已启动Gateway 18800)
